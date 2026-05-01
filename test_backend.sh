@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-BASE_URL="https://uims-backend.abhinavkumarsingh.tech"
+BASE_URL="https://uims.bigboyaks-account.workers.dev"
 TEST_USER="test_$(date +%s)@example.com"
 TEST_PASS="Password123!"
 

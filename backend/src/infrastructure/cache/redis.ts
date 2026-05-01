@@ -9,8 +9,8 @@ export function createRedisClient(env: Env): Redis {
     token: env.UPSTASH_REDIS_REST_TOKEN,
     // @ts-ignore - Cloudflare Workers don't support the 'cache' property in fetch
     fetch: (url: string, init: any) => {
-      if (init) delete init.cache;
-      return fetch(url, init);
+      const { cache, ...rest } = init || {};
+      return fetch(url, rest);
     },
   });
 }
