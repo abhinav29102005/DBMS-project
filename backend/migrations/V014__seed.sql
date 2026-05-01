@@ -12,7 +12,8 @@ INSERT INTO auth.roles (id, code, name, scope_type, is_system) VALUES
   (gen_random_uuid(), 'librarian',       'Librarian',                  'library',    TRUE),
   (gen_random_uuid(), 'warden',          'Hostel Warden',              'hostel',     TRUE),
   (gen_random_uuid(), 'exam_controller', 'Controller of Examinations', 'global',     TRUE),
-  (gen_random_uuid(), 'hod',             'Head of Department',         'department', TRUE)
+  (gen_random_uuid(), 'hod',             'Head of Department',         'department', TRUE),
+  (gen_random_uuid(), 'staff',           'General Staff',              'global',     TRUE)
 ON CONFLICT (code) DO NOTHING;
 
 -- ─── Permissions ─────────────────────────────────────────────
@@ -127,6 +128,17 @@ WHERE r.code = 'exam_controller'
     'user.read.self', 'exam.create', 'exam.marks.enter',
     'exam.marks.moderate', 'exam.result.publish', 'exam.result.read.any',
     'student.read.any', 'enrollment.read.any'
+  )
+ON CONFLICT (role_id, permission_id) DO NOTHING;
+
+-- Staff permissions
+INSERT INTO auth.role_permissions (id, role_id, permission_id)
+SELECT gen_random_uuid(), r.id, p.id
+FROM auth.roles r
+CROSS JOIN auth.permissions p
+WHERE r.code = 'staff'
+  AND p.code IN (
+    'user.read.self', 'library.search'
   )
 ON CONFLICT (role_id, permission_id) DO NOTHING;
 
