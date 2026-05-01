@@ -1,8 +1,9 @@
 import { apiFetch } from '@/lib/api';
+import { StudentStats } from '@/types/api';
 
 export const studentService = {
   getDashboardStats: async () => {
-    return apiFetch('/api/v1/academic/students/me/stats');
+    return apiFetch<StudentStats>('/api/v1/academic/students/me/stats');
   },
 
   getEnrollments: async () => {

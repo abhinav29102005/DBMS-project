@@ -25,5 +25,12 @@ export const authService = {
 
   getCurrentUser: async () => {
     return apiFetch('/api/v1/auth/me');
+  },
+
+  register: async (data: any) => {
+    return apiFetch('/api/v1/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
   }
 };

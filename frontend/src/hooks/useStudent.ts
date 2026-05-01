@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { studentService } from '@/services/academic/studentService';
+import { StudentStats } from '@/types/api';
 
 export function useStudentStats() {
-  return useQuery({
+  return useQuery<StudentStats>({
     queryKey: ['student', 'stats'],
     queryFn: studentService.getDashboardStats,
   });

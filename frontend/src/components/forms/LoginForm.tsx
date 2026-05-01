@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,7 +9,8 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore, AuthState } from '@/store/authStore';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { authService } from '@/services/auth/authService';
 
 const LoginSchema = z.object({
   email: z.string().email('Please enter a valid university email'),
@@ -20,6 +22,7 @@ type LoginFormValues = z.infer<typeof LoginSchema>;
 export function LoginForm() {
   const router = useRouter();
   const setAuth = useAuthStore((s: AuthState) => s.setAuth);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -31,26 +34,17 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
+      const response = await authService.login(data);
 
-      await new Promise(resolve => setTimeout(resolve, 1200));
-
-      let role: any = 'student';
-      if (data.email.includes('admin')) role = 'admin';
-      else if (data.email.includes('faculty')) role = 'faculty';
-
-      const mockToken = 'mock.jwt.token';
-      const mockUser = {
-        id: '1',
-        email: data.email,
-        role: role,
-        name: data.email.split('@')[0],
-      };
-
-      document.cookie = `access_token=${mockToken}; path=/; max-age=3600; SameSite=Lax`;
-      setAuth(mockToken, mockUser);
+      document.cookie = `access_token=${response.token}; path=/; max-age=3600; SameSite=Lax`;
+      setAuth(response.token, response.user);
 
       toast.success('Signed in successfully');
-      router.push(`/${role}/dashboard`);
+      
+      const dashboardPath = `/${response.user.role}/dashboard`;
+      router.replace(dashboardPath).catch(() => {
+        window.location.href = dashboardPath;
+      });
     } catch (err: any) {
       toast.error(err.message || 'Login failed');
     }
@@ -69,16 +63,24 @@ export function LoginForm() {
         />
       </div>
 
-      <div className="relative">
-        <Lock className="absolute left-4 top-[46px] text-gray-400 z-10" size={18} />
+      <div className="relative group">
+        <Lock className="absolute left-4 top-[46px] text-gray-400 z-10 group-focus-within:text-brand-600 transition-colors" size={18} />
         <Input
           label="Password"
-          type="password"
+          type={showPassword ? 'text' : 'password'}
           placeholder="••••••••"
-          className="pl-11"
+          className="pl-11 pr-12"
           error={errors.password?.message}
           {...register('password')}
         />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-4 top-[46px] text-gray-400 hover:text-brand-600 transition-colors z-10"
+          aria-label={showPassword ? 'Hide password' : 'Show password'}
+        >
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+        </button>
       </div>
 
       <div className="flex items-center justify-between">

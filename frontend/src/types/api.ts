@@ -1,4 +1,4 @@
-export type Role = 'student' | 'faculty' | 'admin' | 'librarian' | 'warden' | 'exam_controller';
+export type Role = 'student' | 'faculty' | 'admin' | 'staff' | 'librarian' | 'warden' | 'exam_controller';
 
 export interface User {
   id: string;
@@ -70,4 +70,11 @@ export interface LibraryIssue {
   issued_at: string;
   due_date: string;
   returned_at?: string;
+}
+
+export interface StudentStats {
+  attendance: string;
+  gpa: string;
+  coursesCount: number;
+  fines: string;
 }

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const PUBLIC_PATHS = ['/auth/login', '/reset-password', '/api/health'];
+const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/reset-password', '/api/health'];
 
 const ROLE_ROUTES: Record<string, string[]> = {
   student:   ['/student'],
   faculty:   ['/faculty'],
   admin:     ['/admin'],
+  staff:     ['/staff'],
   librarian: ['/admin/library'],
   warden:    ['/admin/hostel'],
 };
