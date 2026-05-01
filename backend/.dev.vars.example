@@ -14,8 +14,6 @@ DATABASE_DIRECT_URL=postgres://user:password@ep-xxx.neon.tech/neondb?sslmode=req
 UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=AXxx...
 # ✅ Standard Redis connection for BullMQ
-UPSTASH_REDIS_REST_URL="rediss://default:gQAAAAAAAVD7AAIncDI0MjdkMTc4NTQ0NTA0NTVhYWY3NTExZDc0ZDdhOWY5MnAyODYyNjc@better-whale-86267.upstash.io:6379"
-UPSTASH_REDIS_REST_TOKEN="gQAAAAAAAVD7AAIncDI0MjdkMTc4NTQ0NTA0NTVhYWY3NTExZDc0ZDdhOWY5MnAyODYyNjc"
 
 # JWT Secrets — generate with: openssl rand -hex 32
 JWT_ACCESS_SECRET=your-256-bit-hex-access-secret
