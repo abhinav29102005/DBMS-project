@@ -18,7 +18,11 @@ export const adminService = {
     return apiFetch('/api/v1/reporting/admin/stats');
   },
 
-  getSystemLogs: async () => {
+  getSystemLogs: async (): Promise<any[]> => {
     return apiFetch('/api/v1/reporting/admin/logs');
+  },
+
+  getEnrollmentTrends: async (): Promise<any[]> => {
+    return apiFetch('/api/v1/reporting/enrollment-trends');
   }
 };

@@ -37,10 +37,21 @@ reportingRouter.post('/refresh/:mvName', requireAuth, requireRole(['admin']), as
 reportingRouter.get('/admin/stats', requireAuth, requireRole(['admin']), async (request, env) => {
   const sql = createDbClient(env);
   
-  const [students, faculty, courses] = await Promise.all([
+  const [students, faculty, courses, logs] = await Promise.all([
     sql`SELECT COUNT(*) as count FROM academic.students`,
     sql`SELECT COUNT(*) as count FROM auth.user_roles ur JOIN auth.roles r ON ur.role_id = r.id WHERE r.code = 'faculty'`,
-    sql`SELECT COUNT(*) as count FROM academic.course_offerings WHERE status = 'active'`
+    sql`SELECT COUNT(*) as count FROM academic.course_offerings WHERE status = 'active'`,
+    sql`
+      SELECT 
+        l.id, 
+        l.operation || ' on ' || l.table_name as action, 
+        u.email as user, 
+        l.changed_at as time 
+      FROM audit.audit_logs l
+      LEFT JOIN auth.users u ON l.changed_by = u.id
+      ORDER BY l.changed_at DESC
+      LIMIT 5
+    `
   ]);
 
   return Response.json({
@@ -48,8 +59,27 @@ reportingRouter.get('/admin/stats', requireAuth, requireRole(['admin']), async (
     totalFaculty: parseInt(faculty[0].count),
     activeCourses: parseInt(courses[0].count),
     systemHealth: 'Optimal',
-    recentActivity: []
+    recentActivity: logs.map(l => ({
+      id: l.id,
+      action: l.action,
+      user: l.user || 'System',
+      time: l.time
+    }))
   });
+});
+
+reportingRouter.get('/enrollment-trends', requireAuth, requireRole(['admin']), async (request, env) => {
+  const sql = createDbClient(env);
+  const rows = await sql`
+    SELECT 
+      TO_CHAR(enrolled_at, 'Mon') as name,
+      COUNT(*) as value
+    FROM academic.enrollments
+    WHERE enrolled_at > NOW() - INTERVAL '6 months'
+    GROUP BY TO_CHAR(enrolled_at, 'Mon'), DATE_TRUNC('month', enrolled_at)
+    ORDER BY DATE_TRUNC('month', enrolled_at)
+  `;
+  return Response.json(rows);
 });
 
 export { reportingRouter };

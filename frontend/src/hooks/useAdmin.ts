@@ -10,6 +10,13 @@ export function useAdminStats() {
   });
 }
 
+export function useEnrollmentTrends() {
+  return useQuery<any[]>({
+    queryKey: ['admin', 'trends', 'enrollment'],
+    queryFn: adminService.getEnrollmentTrends,
+  });
+}
+
 export function useHostelOccupancy() {
   return useQuery({
     queryKey: ['admin', 'hostel', 'occupancy'],

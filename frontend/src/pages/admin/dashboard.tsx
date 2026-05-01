@@ -1,7 +1,7 @@
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore, AuthState } from '@/store/authStore';
-import { useAdminStats } from '@/hooks/useAdmin';
+import { useAdminStats, useEnrollmentTrends } from '@/hooks/useAdmin';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import {
@@ -30,6 +30,7 @@ const ENROLLMENT_DATA = [
 export default function AdminDashboard() {
   const user = useAuthStore((s: AuthState) => s.user);
   const { data: stats, isLoading, isError, refetch } = useAdminStats();
+  const { data: trends, isLoading: trendsLoading } = useEnrollmentTrends();
 
   if (isError) {
     return (
@@ -102,30 +103,32 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <Card className="lg:col-span-2" title="Enrollment Trends" icon={BarChart3}>
-            <DashboardChart
-              data={ENROLLMENT_DATA}
-              categoryKey="name"
-              dataKey="value"
-              colors={['#185FA5']}
-            />
+            {trendsLoading ? <Skeleton className="h-[300px] w-full" /> : (
+              <DashboardChart
+                data={trends || []}
+                categoryKey="name"
+                dataKey="value"
+                colors={['#185FA5']}
+              />
+            )}
           </Card>
 
-          <Card title="System Alerts" icon={AlertCircle}>
+          <Card title="Recent System Activity" icon={AlertCircle}>
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-red-50 border border-red-100 flex gap-3">
-                <AlertCircle className="text-red-500 shrink-0" size={18} />
-                <div>
-                  <h4 className="text-sm font-bold text-red-900">Database Warning</h4>
-                  <p className="text-xs text-red-700 leading-relaxed">Latency spike detected in Region-1 nodes.</p>
-                </div>
-              </div>
-              <div className="p-4 rounded-xl bg-orange-50 border border-orange-100 flex gap-3">
-                <AlertCircle className="text-orange-500 shrink-0" size={18} />
-                <div>
-                  <h4 className="text-sm font-bold text-orange-900">Audit Required</h4>
-                  <p className="text-xs text-orange-700 leading-relaxed">Hostel allotment logs for Block C need review.</p>
-                </div>
-              </div>
+              {isLoading ? [1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />) : (
+                (stats?.recentActivity?.length || 0) > 0 ? (
+                  stats?.recentActivity.map((log: any, i: number) => (
+                    <div key={i} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                      <h4 className="text-xs font-bold text-gray-900">{log.action}</h4>
+                      <p className="text-[10px] text-gray-500">{log.user} • {new Date(log.time).toLocaleTimeString()}</p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-gray-400 text-xs italic">
+                    No recent activity logs found.
+                  </div>
+                )
+              )}
               <Button variant="outline" className="w-full text-xs">View All Logs</Button>
             </div>
           </Card>

@@ -17,7 +17,7 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
+export async function apiFetch<T = any>(path: string, options: ApiOptions = {}): Promise<T> {
   const { token, ...rest } = options;
 
   if (!BASE) {
