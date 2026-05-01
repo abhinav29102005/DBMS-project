@@ -55,11 +55,11 @@ reportingRouter.get('/admin/stats', requireAuth, requireRole(['admin']), async (
   ]);
 
   return Response.json({
-    totalStudents: parseInt(students[0].count),
-    totalFaculty: parseInt(faculty[0].count),
-    activeCourses: parseInt(courses[0].count),
+    totalStudents: students?.[0] ? parseInt(students[0].count) : 0,
+    totalFaculty: faculty?.[0] ? parseInt(faculty[0].count) : 0,
+    activeCourses: courses?.[0] ? parseInt(courses[0].count) : 0,
     systemHealth: 'Optimal',
-    recentActivity: logs.map(l => ({
+    recentActivity: (logs || []).map(l => ({
       id: l.id,
       action: l.action,
       user: l.user || 'System',
