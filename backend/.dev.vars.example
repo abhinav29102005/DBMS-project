@@ -1,0 +1,28 @@
+# ─────────────────────────────────────────────────────────────
+# UIMS Local Development Secrets
+# Copy this file to .dev.vars and fill in real values.
+# NEVER commit .dev.vars to version control.
+# ─────────────────────────────────────────────────────────────
+
+# Neon PostgreSQL — use POOLED connection string for runtime
+DATABASE_URL=postgres://user:password@ep-xxx.pooler.neon.tech/neondb?sslmode=require
+
+# Neon PostgreSQL — use DIRECT connection string for migrations only
+DATABASE_DIRECT_URL=postgres://user:password@ep-xxx.neon.tech/neondb?sslmode=require
+
+# Upstash Redis
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=AXxx...
+# ✅ Standard Redis connection for BullMQ
+UPSTASH_REDIS_REST_URL="rediss://default:gQAAAAAAAVD7AAIncDI0MjdkMTc4NTQ0NTA0NTVhYWY3NTExZDc0ZDdhOWY5MnAyODYyNjc@better-whale-86267.upstash.io:6379"
+UPSTASH_REDIS_REST_TOKEN="gQAAAAAAAVD7AAIncDI0MjdkMTc4NTQ0NTA0NTVhYWY3NTExZDc0ZDdhOWY5MnAyODYyNjc"
+
+# JWT Secrets — generate with: openssl rand -hex 32
+JWT_ACCESS_SECRET=your-256-bit-hex-access-secret
+JWT_REFRESH_SECRET=your-256-bit-hex-refresh-secret
+
+# Resend Email API
+RESEND_API_KEY=re_xxx
+
+# Sentry Error Tracking
+SENTRY_DSN=https://xxx@sentry.io/xxx

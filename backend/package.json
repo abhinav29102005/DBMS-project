@@ -1,0 +1,34 @@
+{
+  "name": "uims-api",
+  "version": "1.0.0",
+  "description": "University Integrated Management System — Cloudflare Workers API",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "tail": "wrangler tail",
+    "migrate": "node scripts/migrate.mjs",
+    "migrate:create": "echo 'Usage: touch migrations/V0XX__name.sql'"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "@sentry/cloudflare": "^10.51.0",
+    "@upstash/redis": "^1.34.3",
+    "bcryptjs": "^2.4.3",
+    "itty-router": "^5.0.18",
+    "jose": "^5.9.6",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241230.0",
+    "@types/bcryptjs": "^2.4.6",
+    "pg": "^8.20.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "wrangler": "^3.99.0"
+  }
+}

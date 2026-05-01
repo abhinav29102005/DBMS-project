@@ -1,0 +1,44 @@
+# ─────────────────────────────────────────────────────────────
+# UIMS API — Cloudflare Workers Configuration
+# ─────────────────────────────────────────────────────────────
+
+name = "uims-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# ─────────────────────────────────────────────────────────────
+# Non-secret environment variables
+# ─────────────────────────────────────────────────────────────
+[vars]
+APP_ENV = "production"
+CORS_ORIGIN = "*"
+ACCESS_TOKEN_TTL_MINUTES = "15"
+REFRESH_TOKEN_TTL_DAYS = "7"
+BCRYPT_COST = "10"
+
+# ─────────────────────────────────────────────────────────────
+# Secrets — NEVER commit these. Set via:
+#   wrangler secret put DATABASE_URL
+#   wrangler secret put JWT_ACCESS_SECRET
+#   wrangler secret put JWT_REFRESH_SECRET
+#   wrangler secret put UPSTASH_REDIS_REST_URL
+#   wrangler secret put UPSTASH_REDIS_REST_TOKEN
+#   wrangler secret put BREVO_API_KEY
+#   wrangler secret put SENTRY_DSN
+# ─────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────
+# Dev environment override
+# ─────────────────────────────────────────────────────────────
+
+[dev]
+ip = "127.0.0.1"
+port = 8787
+
+[env.dev]
+name = "uims-api-dev"
+[env.dev.vars]
+APP_ENV = "development"
+CORS_ORIGIN = "http://localhost:5173"
+
