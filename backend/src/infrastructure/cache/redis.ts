@@ -4,17 +4,25 @@ import { Redis } from '@upstash/redis';
 import type { Env } from '../../core/types/env';
 
 export function createRedisClient(env: Env): Redis {
-  return new Redis({
-    url: env.UPSTASH_REDIS_REST_URL,
-    token: env.UPSTASH_REDIS_REST_TOKEN,
-    // @ts-ignore - Cloudflare Workers don't support the 'cache' property in fetch
-    fetch: (url: string, init: any) => {
-      const { cache, ...rest } = init || {};
-      return fetch(url, rest);
-    },
-  });
+  // Mock Redis to unblock development while troubleshooting Upstash 1016 errors
+  return {
+    get: async () => null,
+    set: async () => 'OK',
+    del: async () => 1,
+    incr: async () => 1,
+    expire: async () => true,
+    ttl: async () => -1,
+  } as any;
 }
-
+  // return new Redis({
+  //   url: env.UPSTASH_REDIS_REST_URL,
+  //   token: env.UPSTASH_REDIS_REST_TOKEN,
+  //   // @ts-ignore - Cloudflare Workers don't support the 'cache' property in fetch
+  //   fetch: (url: string, init: any) => {
+  //     const { cache, ...rest } = init || {};
+  //     return fetch(url, rest);
+  //   },
+  // });
 export async function cacheGet<T>(
   redis: Redis,
   key: string,
