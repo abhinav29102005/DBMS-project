@@ -61,8 +61,8 @@ router.all('*', () =>
 
 // Patch global fetch to fix "RequestInitializerDict.cache" error in Cloudflare Workers
 const originalFetch = globalThis.fetch;
-globalThis.fetch = (url: any, init?: any) => {
-  if (init && 'cache' in init) {
+globalThis.fetch = async (url: any, init?: any) => {
+  if (init && typeof init === 'object' && 'cache' in init) {
     const { cache, ...rest } = init;
     return originalFetch(url, rest);
   }
