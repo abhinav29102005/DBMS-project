@@ -7,6 +7,11 @@ export function createRedisClient(env: Env): Redis {
   return new Redis({
     url: env.UPSTASH_REDIS_REST_URL,
     token: env.UPSTASH_REDIS_REST_TOKEN,
+    // @ts-ignore - Cloudflare Workers don't support the 'cache' property in fetch
+    fetch: (url: string, init: any) => {
+      if (init) delete init.cache;
+      return fetch(url, init);
+    },
   });
 }
 
