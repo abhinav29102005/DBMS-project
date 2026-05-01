@@ -13,10 +13,6 @@ interface Props {
   className?: string;
 }
 
-/**
- * Adaptive Drawer/Modal component.
- * Renders a bottom sheet on mobile and a centered modal on desktop.
- */
 export function Drawer({ open, onClose, title, children, className }: Props) {
   const device = useDevice();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -38,19 +34,19 @@ export function Drawer({ open, onClose, title, children, className }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-      {/* Backdrop */}
-      <div 
+      {}
+      <div
         ref={overlayRef}
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200" 
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
       />
-      
-      {/* Content */}
-      <div 
+
+      {}
+      <div
         className={cn(
           "relative bg-white shadow-2xl transition-all duration-300 ease-out outline-none",
-          isMobile 
-            ? "w-full rounded-t-3xl p-6 pb-12 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300" 
+          isMobile
+            ? "w-full rounded-t-3xl p-6 pb-12 max-h-[90vh] overflow-y-auto animate-in slide-in-from-bottom duration-300"
             : "w-full max-w-lg rounded-2xl p-8 animate-in zoom-in-95 duration-200",
           className
         )}
@@ -59,19 +55,19 @@ export function Drawer({ open, onClose, title, children, className }: Props) {
         {isMobile && (
           <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6 flex-shrink-0" />
         )}
-        
+
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900 tracking-tight">{title}</h2>
           {!isMobile && (
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               className="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
             >
               <X size={20} />
             </button>
           )}
         </div>
-        
+
         <div className="overflow-y-auto">
           {children}
         </div>

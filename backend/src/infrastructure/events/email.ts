@@ -1,10 +1,4 @@
-/**
- * UIMS Infrastructure — Email Service
- * 
- * Replaces Resend. Supports a "Zero Cost" approach by providing
- * a base interface that can be implemented by free-tier providers
- * (like Brevo, SendGrid, or just Console during development).
- */
+
 
 export interface EmailOptions {
   to: string;
@@ -17,10 +11,6 @@ export interface EmailService {
   send(options: EmailOptions): Promise<void>;
 }
 
-/**
- * Dev implementation: Just logs to console.
- * Truly free!
- */
 export class ConsoleEmailService implements EmailService {
   async send(options: EmailOptions): Promise<void> {
     console.log('─── EMAIL SENT ────────────────────────────────');
@@ -31,10 +21,6 @@ export class ConsoleEmailService implements EmailService {
   }
 }
 
-/**
- * Brevo implementation placeholder (Free: 300 emails/day)
- * Use this as a replacement for Resend.
- */
 export class BrevoEmailService implements EmailService {
   constructor(private apiKey: string) {}
 

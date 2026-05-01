@@ -26,10 +26,10 @@ export default function StudentLibraryPage() {
     { accessorKey: 'title', header: 'Book Title' },
     { accessorKey: 'author', header: 'Author' },
     { accessorKey: 'dueDate', header: 'Due Date' },
-    { 
-      accessorKey: 'status', 
+    {
+      accessorKey: 'status',
       header: 'Status',
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
           row.original.status === 'Issued' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
         }`}>
@@ -110,10 +110,10 @@ export default function StudentLibraryPage() {
 
         <div className="space-y-6">
           <h2 className="text-xl font-bold text-gray-900">Current Issues</h2>
-          <DataTable 
-            data={MOCK_ISSUES} 
-            columns={columns} 
-            mobileCard={mobileCard} 
+          <DataTable
+            data={MOCK_ISSUES}
+            columns={columns}
+            mobileCard={mobileCard}
           />
         </div>
 
@@ -135,7 +135,7 @@ export default function StudentLibraryPage() {
               ))}
             </div>
           </Card>
-          
+
           <Card title="Library Hours">
             <div className="space-y-3 text-sm">
               <div className="flex justify-between">

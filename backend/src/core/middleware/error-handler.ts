@@ -1,23 +1,13 @@
-/**
- * UIMS API — Error Handler Middleware
- *
- * Global error boundary for the Workers request lifecycle.
- * Catches AppError subtypes and unknown errors, returning
- * a normalized JSON error response with correlation ID.
- */
+
 
 import { AppError } from '../errors/app-error';
 import type { ApiErrorResponse } from '../types/context';
 
-/**
- * Wrap a handler with global error catching.
- * Returns a structured JSON error response for any thrown error.
- */
 export function errorHandler(
   error: unknown,
   correlationId: string
 ): Response {
-  // Known application errors
+
   if (error instanceof AppError) {
     const body: ApiErrorResponse = {
       error: {
@@ -37,7 +27,6 @@ export function errorHandler(
     });
   }
 
-  // Unknown/unexpected errors
   console.error(`[${correlationId}] Unhandled error:`, error);
 
   const body: ApiErrorResponse = {

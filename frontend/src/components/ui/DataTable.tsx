@@ -7,9 +7,14 @@ import {
   getSortedRowModel,
   flexRender,
   type ColumnDef,
+  HeaderGroup,
+  Header,
+  Row,
+  Cell as TableCell,
 } from '@tanstack/react-table';
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 interface Props<T> {
   data: T[];
@@ -18,10 +23,6 @@ interface Props<T> {
   loading?: boolean;
 }
 
-/**
- * Adaptive DataTable component.
- * Renders a full-featured table on desktop and a card-based list on mobile.
- */
 export function DataTable<T>({ data, columns, mobileCard, loading }: Props<T>) {
   const device = useDevice();
   const table = useReactTable({
@@ -49,11 +50,11 @@ export function DataTable<T>({ data, columns, mobileCard, loading }: Props<T>) {
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <table className="w-full text-sm text-left">
         <thead className="bg-gray-50/50 text-gray-500 text-xs font-semibold uppercase tracking-wider">
-          {table.getHeaderGroups().map((hg) => (
+          {table.getHeaderGroups().map((hg: HeaderGroup<T>) => (
             <tr key={hg.id}>
-              {hg.headers.map((h) => (
-                <th 
-                  key={h.id} 
+              {hg.headers.map((h: Header<T, any>) => (
+                <th
+                  key={h.id}
                   className="px-6 py-4 cursor-pointer select-none transition-colors hover:bg-gray-100"
                   onClick={h.column.getToggleSortingHandler()}
                 >
@@ -63,7 +64,7 @@ export function DataTable<T>({ data, columns, mobileCard, loading }: Props<T>) {
                       <span className="text-gray-400">
                         {{
                           asc: <ChevronUp size={14} />,
-                          desc: <ChevronDown size={14} />,
+                           desc: <ChevronDown size={14} />,
                         }[h.column.getIsSorted() as string] ?? <ChevronsUpDown size={14} />}
                       </span>
                     )}
@@ -91,9 +92,9 @@ export function DataTable<T>({ data, columns, mobileCard, loading }: Props<T>) {
               </td>
             </tr>
           ) : (
-            table.getRowModel().rows.map((row) => (
+            table.getRowModel().rows.map((row: Row<T>) => (
               <tr key={row.id} className="hover:bg-gray-50/80 transition-colors">
-                {row.getVisibleCells().map((cell) => (
+                {row.getVisibleCells().map((cell: TableCell<T, any>) => (
                   <td key={cell.id} className="px-6 py-4 text-gray-700">
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>

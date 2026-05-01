@@ -29,11 +29,11 @@ const ADMIN_TABS = [
 export function MobileNav({ role }: { role: Role }) {
   const router = useRouter();
   const pathname = router.pathname;
-  
-  const tabs = role === 'student' 
-    ? STUDENT_TABS 
-    : role === 'faculty' 
-    ? FACULTY_TABS 
+
+  const tabs = role === 'student'
+    ? STUDENT_TABS
+    : role === 'faculty'
+    ? FACULTY_TABS
     : ADMIN_TABS;
 
   return (

@@ -1,10 +1,4 @@
-/**
- * UIMS — Structured Logger
- *
- * JSON-structured logging for Cloudflare Workers.
- * Workers console.log output is visible in `wrangler tail`
- * and Cloudflare dashboard → Workers → Logs.
- */
+
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -47,13 +41,11 @@ export class Logger {
   warn(msg: string,  data?: Record<string, unknown>) { this.emit('warn',  msg, data); }
   error(msg: string, data?: Record<string, unknown>) { this.emit('error', msg, data); }
 
-  /** Create a child logger scoped to a specific module */
   child(module: string): Logger {
     return new Logger(this.correlationId, module);
   }
 }
 
-/** Factory — call once per request */
 export function createLogger(correlationId: string, module?: string): Logger {
   return new Logger(correlationId, module);
 }

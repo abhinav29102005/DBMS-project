@@ -1,6 +1,4 @@
-/**
- * UIMS Exam Module — Exam Repository
- */
+
 
 import type { NeonQueryFunction } from '@neondatabase/serverless';
 import type { Exam, Mark, FinalResult } from '../domain/entities';

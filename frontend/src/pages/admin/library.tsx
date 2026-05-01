@@ -29,8 +29,8 @@ export default function AdminLibraryPage() {
     { accessorKey: 'title', header: 'Title' },
     { accessorKey: 'author', header: 'Author' },
     { accessorKey: 'copies', header: 'Total' },
-    { 
-      accessorKey: 'available', 
+    {
+      accessorKey: 'available',
       header: 'Available',
       cell: ({ row }) => (
         <span className={`font-bold ${row.original.available === 0 ? 'text-red-500' : 'text-green-600'}`}>
@@ -116,10 +116,10 @@ export default function AdminLibraryPage() {
           </Button>
         </div>
 
-        <DataTable 
-          data={MOCK_BOOKS} 
-          columns={columns} 
-          mobileCard={mobileCard} 
+        <DataTable
+          data={MOCK_BOOKS}
+          columns={columns}
+          mobileCard={mobileCard}
         />
       </div>
     </ShellLayout>

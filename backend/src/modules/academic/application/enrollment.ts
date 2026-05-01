@@ -1,6 +1,4 @@
-/**
- * UIMS Academic — Enrollment Use Case
- */
+
 
 import { AcademicRepository } from '../infrastructure/academic-repository';
 import { ValidationError, NotFoundError } from '../../../core/errors/app-error';

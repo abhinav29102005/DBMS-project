@@ -47,7 +47,7 @@ export default function CoursesPage() {
                     <span className="text-xs font-bold text-gray-400">{course.credits} Credits</span>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-brand-700 transition-colors">{course.name}</h3>
-                  
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
                     <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
                       <User size={16} className="text-brand-400" />

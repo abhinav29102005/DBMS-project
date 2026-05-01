@@ -33,7 +33,71 @@ export default function MarksEntryPage() {
   const [selectedStudent, setSelectedStudent] = useState<StudentMark | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // ... (DataTable columns and mobileCard stay the same)
+  const columns: ColumnDef<StudentMark>[] = [
+    { accessorKey: 'studentId', header: 'ID' },
+    { accessorKey: 'name', header: 'Student Name' },
+    {
+      accessorKey: 'currentMarks',
+      header: 'Marks',
+      cell: ({ row }) => (
+        <span className="font-bold">{row.original.currentMarks}</span>
+      )
+    },
+    {
+      accessorKey: 'status',
+      header: 'Status',
+      cell: ({ row }) => (
+        <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
+          row.original.status === 'Submitted' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+        }`}>
+          {row.original.status}
+        </span>
+      )
+    },
+    {
+      id: 'actions',
+      header: '',
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            setSelectedStudent(row.original);
+            setIsDrawerOpen(true);
+          }}
+        >
+          Edit Marks
+        </Button>
+      )
+    }
+  ];
+
+  const mobileCard = (student: StudentMark) => (
+    <Card className="p-4" onClick={() => {
+      setSelectedStudent(student);
+      setIsDrawerOpen(true);
+    }}>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-brand-50 flex items-center justify-center text-brand-600">
+            <User size={18} />
+          </div>
+          <div>
+            <h4 className="font-bold text-gray-900">{student.name}</h4>
+            <p className="text-xs text-gray-400">{student.studentId}</p>
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="font-bold text-lg">{student.currentMarks}</div>
+          <span className={`text-[10px] font-bold uppercase ${
+            student.status === 'Submitted' ? 'text-green-600' : 'text-orange-600'
+          }`}>
+            {student.status}
+          </span>
+        </div>
+      </div>
+    </Card>
+  );
 
   return (
     <ShellLayout role="faculty">
@@ -67,19 +131,19 @@ export default function MarksEntryPage() {
           <Button variant="secondary" className="mobile:hidden">Filter</Button>
         </div>
 
-        <DataTable 
-          data={MOCK_STUDENTS} 
-          columns={columns} 
-          mobileCard={mobileCard} 
+        <DataTable
+          data={MOCK_STUDENTS}
+          columns={columns}
+          mobileCard={mobileCard}
         />
 
-        <Drawer 
-          open={isDrawerOpen} 
-          onClose={() => setIsDrawerOpen(false)} 
+        <Drawer
+          open={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
           title="Update Student Marks"
         >
           {selectedStudent && (
-            <MarksEntryForm 
+            <MarksEntryForm
               studentName={selectedStudent.name}
               initialMarks={selectedStudent.currentMarks}
               onSuccess={() => setIsDrawerOpen(false)}

@@ -1,10 +1,10 @@
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
-import { useAuthStore } from '@/store/authStore';
-import { 
-  Users, 
-  Building2, 
-  BookOpen, 
+import { useAuthStore, AuthState } from '@/store/authStore';
+import {
+  Users,
+  Building2,
+  BookOpen,
   AlertCircle,
   BarChart3,
   UserCheck
@@ -25,7 +25,7 @@ const ENROLLMENT_DATA = [
 ];
 
 export default function AdminDashboard() {
-  const user = useAuthStore(s => s.user);
+  const user = useAuthStore((s: AuthState) => s.user);
 
   return (
     <ShellLayout role="admin">
@@ -74,11 +74,11 @@ export default function AdminDashboard() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <Card className="lg:col-span-2" title="Enrollment Trends" icon={BarChart3}>
-            <DashboardChart 
-              data={ENROLLMENT_DATA} 
-              categoryKey="name" 
-              dataKey="value" 
-              colors={['#185FA5']} 
+            <DashboardChart
+              data={ENROLLMENT_DATA}
+              categoryKey="name"
+              dataKey="value"
+              colors={['#185FA5']}
             />
           </Card>
 

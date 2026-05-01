@@ -1,6 +1,4 @@
-/**
- * UIMS Exam Module — Exam Router
- */
+
 
 import { AutoRouter } from 'itty-router';
 import { createDbClient } from '../../../infrastructure/database/connection';
@@ -12,7 +10,6 @@ import type { AuthenticatedRequest } from '../../../core/types/context';
 
 const examRouter = AutoRouter<AuthenticatedRequest, [Env]>({ base: '/api/v1/exam' });
 
-// ─── List Student Results ───────────────────────────────────
 examRouter.get('/my-results', requireAuth, async (request, env) => {
   const sql = createDbClient(env);
   const rows = await sql`
@@ -22,7 +19,6 @@ examRouter.get('/my-results', requireAuth, async (request, env) => {
   return Response.json(rows);
 });
 
-// ─── Publish Results (Admin/Controller) ──────────────────────
 const publishSchema = z.object({
   offeringId: z.string().uuid()
 });
@@ -33,14 +29,12 @@ examRouter.post('/publish', requireAuth, requirePermission('exam.result.publish'
   if (!result.success) throw new ValidationError('Invalid request body');
 
   const sql = createDbClient(env);
-  
-  // CALL procedure
+
   await sql`CALL exam.publish_results(${result.data.offeringId}, ${request.ctx!.userId})`;
 
   return Response.json({ message: 'Results published successfully' });
 });
 
-// ─── Rank Students ──────────────────────────────────────────
 examRouter.get('/rankings/:deptId', requireAuth, async (request, env) => {
   const { deptId } = request.params;
   const sql = createDbClient(env);

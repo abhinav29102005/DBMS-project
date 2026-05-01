@@ -1,10 +1,10 @@
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore } from '@/store/authStore';
-import { 
-  Users, 
-  BookOpen, 
-  FileText, 
+import {
+  Users,
+  BookOpen,
+  FileText,
   Calendar,
   Clock,
   ArrowRight
@@ -66,7 +66,7 @@ export default function FacultyDashboard() {
                 Full Schedule <ArrowRight size={14} />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               {[
                 { time: '10:30 AM', subject: 'Database Management Systems', section: 'CS-A', room: 'Lab 402' },

@@ -22,7 +22,7 @@ export default function LoginPage() {
 
           <div className="bg-white p-8 rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100">
             <LoginForm />
-            
+
             <div className="mt-8 pt-6 border-t border-gray-100 text-center">
               <p className="text-xs text-gray-400">
                 UIMS v1.0.0 &copy; 2024 University Integrated Management System

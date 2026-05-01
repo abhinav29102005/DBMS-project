@@ -6,11 +6,11 @@ interface Props {
 
 export function Skeleton({ className }: Props) {
   return (
-    <div 
+    <div
       className={cn(
-        "animate-pulse rounded-md bg-gray-200", 
+        "animate-pulse rounded-md bg-gray-200",
         className
-      )} 
+      )}
     />
   );
 }

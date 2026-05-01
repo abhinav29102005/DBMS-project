@@ -4,7 +4,7 @@ export const examService = {
   getExams: async () => {
     return apiFetch('/api/v1/exam/exams');
   },
-  
+
   getMarks: async (examId: string) => {
     return apiFetch(`/api/v1/exam/exams/${examId}/marks`);
   },

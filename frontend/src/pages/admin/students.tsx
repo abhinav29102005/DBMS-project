@@ -28,8 +28,8 @@ const MOCK_STUDENTS: StudentRecord[] = [
 export default function AdminStudentsPage() {
   const columns: ColumnDef<StudentRecord>[] = [
     { accessorKey: 'studentId', header: 'ID' },
-    { 
-      accessorKey: 'name', 
+    {
+      accessorKey: 'name',
       header: 'Full Name',
       cell: ({ row }) => (
         <div className="flex items-center gap-3">
@@ -43,12 +43,12 @@ export default function AdminStudentsPage() {
     { accessorKey: 'email', header: 'Email' },
     { accessorKey: 'program', header: 'Program' },
     { accessorKey: 'semester', header: 'Sem' },
-    { 
-      accessorKey: 'status', 
+    {
+      accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-          row.original.status === 'Active' ? 'bg-green-100 text-green-700' : 
+          row.original.status === 'Active' ? 'bg-green-100 text-green-700' :
           row.original.status === 'On Leave' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
         }`}>
           {row.original.status}
@@ -128,10 +128,10 @@ export default function AdminStudentsPage() {
           <Button variant="secondary" className="mobile:hidden">Filters</Button>
         </div>
 
-        <DataTable 
-          data={MOCK_STUDENTS} 
-          columns={columns} 
-          mobileCard={mobileCard} 
+        <DataTable
+          data={MOCK_STUDENTS}
+          columns={columns}
+          mobileCard={mobileCard}
         />
       </div>
     </ShellLayout>

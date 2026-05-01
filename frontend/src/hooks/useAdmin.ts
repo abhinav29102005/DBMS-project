@@ -13,7 +13,7 @@ export function useLibraryStats() {
   return useQuery({
     queryKey: ['admin', 'library', 'stats'],
     queryFn: () => {
-      // Logic for library stats
+
       return {};
     },
   });
@@ -23,7 +23,7 @@ export function useAllStudents(filters?: any) {
   return useQuery({
     queryKey: ['admin', 'students', filters],
     queryFn: () => {
-      // Logic for fetching all students
+
       return [];
     },
   });

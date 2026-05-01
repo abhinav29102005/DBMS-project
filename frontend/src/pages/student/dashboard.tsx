@@ -1,15 +1,15 @@
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, AuthState } from '@/store/authStore';
 import { useStudentStats } from '@/hooks/useStudent';
 import { Loading } from '@/components/feedback/Loading';
 import { ErrorState } from '@/components/feedback/ErrorState';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { 
-  BookOpen, 
-  Calendar, 
-  GraduationCap, 
-  TrendingUp, 
+import {
+  BookOpen,
+  Calendar,
+  GraduationCap,
+  TrendingUp,
   Clock,
   ArrowRight
 } from 'lucide-react';
@@ -17,7 +17,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 
 export default function StudentDashboard() {
-  const user = useAuthStore(s => s.user);
+  const user = useAuthStore((s: AuthState) => s.user);
   const { data: stats, isLoading, isError, refetch } = useStudentStats();
 
   if (isError) {
@@ -35,7 +35,7 @@ export default function StudentDashboard() {
       </Head>
 
       <div className="space-y-8">
-        {/* Welcome Section */}
+        {}
         <section className="relative overflow-hidden rounded-3xl bg-brand-600 p-8 text-white shadow-xl shadow-brand-500/20">
           <div className="relative z-10">
             <h1 className="text-3xl font-bold mb-2 tracking-tight">
@@ -54,7 +54,7 @@ export default function StudentDashboard() {
           </div>
         </section>
 
-        {/* Quick Stats Grid */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card title="Attendance" subtitle="Current Semester" icon={Clock}>
             {isLoading ? (
@@ -98,9 +98,9 @@ export default function StudentDashboard() {
           </Card>
         </div>
 
-        {/* Main Content Grid */}
+        {}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Schedule */}
+          {}
           <div className="lg:col-span-2 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Today's Schedule</h2>
@@ -108,7 +108,7 @@ export default function StudentDashboard() {
                 View Full Calendar <ArrowRight size={14} />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               {isLoading ? (
                 [1, 2, 3].map(i => <Skeleton key={i} className="h-20 w-full rounded-2xl" />)

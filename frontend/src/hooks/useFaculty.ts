@@ -5,8 +5,8 @@ export function useFacultyOfferings() {
   return useQuery({
     queryKey: ['faculty', 'offerings'],
     queryFn: () => {
-      // Logic for fetching faculty offerings
-      return []; 
+
+      return [];
     },
   });
 }
@@ -22,7 +22,7 @@ export function useExamMarks(examId: string) {
 export function useUpdateMarks() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ examId, studentId, marks }: { examId: string, studentId: string, marks: number }) => 
+    mutationFn: ({ examId, studentId, marks }: { examId: string, studentId: string, marks: number }) =>
       examService.updateMarks(examId, studentId, marks),
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ['exam', 'marks', variables.examId] });

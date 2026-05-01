@@ -1,6 +1,4 @@
-/**
- * UIMS Hostel Module — Domain Entities
- */
+
 
 export interface Hostel {
   id: string;

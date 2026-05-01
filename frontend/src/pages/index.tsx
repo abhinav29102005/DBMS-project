@@ -2,10 +2,6 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAuthStore } from '@/store/authStore';
 
-/**
- * Root page for Pages Router.
- * Handles initial redirection based on auth state.
- */
 export default function IndexPage() {
   const router = useRouter();
   const user = useAuthStore(s => s.user);

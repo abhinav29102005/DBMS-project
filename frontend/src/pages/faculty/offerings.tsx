@@ -34,7 +34,7 @@ export default function FacultyOfferingsPage() {
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{offering.code}</span>
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-6">{offering.name}</h3>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     <div className="space-y-1">
                       <p className="text-[10px] font-bold text-gray-400 uppercase">Enrolled Students</p>
@@ -56,15 +56,15 @@ export default function FacultyOfferingsPage() {
                         <span className="text-brand-600">{offering.progress}%</span>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-brand-600 rounded-full transition-all duration-1000" 
-                          style={{ width: `${offering.progress}%` }} 
+                        <div
+                          className="h-full bg-brand-600 rounded-full transition-all duration-1000"
+                          style={{ width: `${offering.progress}%` }}
                         />
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-row md:flex-col gap-3 justify-center md:border-l border-gray-100 md:pl-8">
                   <Link href="/faculty/marks">
                     <Button variant="primary" className="w-full">

@@ -7,10 +7,10 @@ interface Props {
   onRetry?: () => void;
 }
 
-export function ErrorState({ 
-  title = "Something went wrong", 
+export function ErrorState({
+  title = "Something went wrong",
   message = "We encountered an error while loading this data. Please try again later.",
-  onRetry 
+  onRetry
 }: Props) {
   return (
     <div className="flex flex-col items-center justify-center p-12 text-center bg-white rounded-3xl border border-red-100 shadow-sm">

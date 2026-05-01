@@ -80,11 +80,11 @@ export default function AdminHostelPage() {
                       <span className="text-gray-900">{block.occupied} / {block.rooms}</span>
                     </div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className={`h-full rounded-full transition-all duration-1000 ${
                           (block.occupied/block.rooms) > 0.9 ? 'bg-red-500' : 'bg-brand-500'
                         }`}
-                        style={{ width: `${(block.occupied/block.rooms)*100}%` }} 
+                        style={{ width: `${(block.occupied/block.rooms)*100}%` }}
                       />
                     </div>
                   </div>

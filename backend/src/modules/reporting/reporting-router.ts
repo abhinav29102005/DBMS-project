@@ -1,6 +1,4 @@
-/**
- * UIMS Reporting Module — Reporting Router
- */
+
 
 import { AutoRouter } from 'itty-router';
 import { createDbClient } from '../../infrastructure/database/connection';
@@ -10,7 +8,6 @@ import type { AuthenticatedRequest } from '../../core/types/context';
 
 const reportingRouter = AutoRouter<AuthenticatedRequest, [Env]>({ base: '/api/v1/reporting' });
 
-// ─── GPA Histogram ──────────────────────────────────────────
 reportingRouter.get('/gpa-distribution', requireAuth, requireRole(['admin']), async (request, env) => {
   const sql = createDbClient(env);
   const rows = await sql`
@@ -23,18 +20,16 @@ reportingRouter.get('/gpa-distribution', requireAuth, requireRole(['admin']), as
   return Response.json(rows);
 });
 
-// ─── Hostel Stats ───────────────────────────────────────────
 reportingRouter.get('/hostel-stats', requireAuth, async (request, env) => {
   const sql = createDbClient(env);
   const rows = await sql`SELECT * FROM reporting.mv_hostel_occupancy_stats`;
   return Response.json(rows);
 });
 
-// ─── Refresh MVs ────────────────────────────────────────────
 reportingRouter.post('/refresh/:mvName', requireAuth, requireRole(['admin']), async (request, env) => {
   const { mvName } = request.params;
   const sql = createDbClient(env);
-  
+
   await sql`CALL reporting.refresh_if_stale(${mvName})`;
   return Response.json({ message: `Materialized view ${mvName} refresh triggered` });
 });

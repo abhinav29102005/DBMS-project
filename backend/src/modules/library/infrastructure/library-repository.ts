@@ -1,6 +1,4 @@
-/**
- * UIMS Library Module — Library Repository
- */
+
 
 import type { NeonQueryFunction } from '@neondatabase/serverless';
 import type { Book, BookCopy, Issue } from '../domain/entities';

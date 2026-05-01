@@ -1,9 +1,4 @@
-/**
- * UIMS API — Application Error Hierarchy
- *
- * All application errors extend AppError for consistent
- * error-to-HTTP-status mapping in the error handler middleware.
- */
+
 
 export class AppError extends Error {
   public readonly statusCode: number;

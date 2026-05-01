@@ -1,6 +1,4 @@
-/**
- * UIMS Academic Module — Domain Entities
- */
+
 
 export interface Department {
   id: string;

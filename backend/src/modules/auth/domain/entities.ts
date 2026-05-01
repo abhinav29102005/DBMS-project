@@ -1,6 +1,4 @@
-/**
- * UIMS Auth Module — Domain Entities
- */
+
 
 export interface User {
   id: string;

@@ -1,6 +1,4 @@
-/**
- * UIMS Library Module — Domain Entities
- */
+
 
 export interface Book {
   id: string;

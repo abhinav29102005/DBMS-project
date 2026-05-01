@@ -1,13 +1,5 @@
-/**
- * UIMS — Security Utilities
- *
- * Input sanitisation and security helpers.
- */
 
-/**
- * Strip potentially dangerous characters from user-supplied strings.
- * Prevents basic XSS when values are echoed in JSON responses.
- */
+
 export function sanitize(input: string): string {
   return input
     .replace(/</g, '&lt;')

@@ -1,6 +1,4 @@
-/**
- * UIMS Hostel Module — Hostel Repository
- */
+
 
 import type { NeonQueryFunction } from '@neondatabase/serverless';
 import type { Hostel, Room, Bed, Allocation } from '../domain/entities';
@@ -19,16 +17,13 @@ export class HostelRepository {
 
   async getAllocationByStudentId(studentId: string): Promise<Allocation | null> {
     const rows = await this.sql`
-      SELECT * FROM hostel.allocations 
+      SELECT * FROM hostel.allocations
       WHERE student_id = ${studentId} AND status = 'active'
       LIMIT 1
     `;
     return (rows[0] as Allocation) || null;
   }
 
-  /**
-   * Atomic allocation using the PL/pgSQL function.
-   */
   async allocateBed(studentId: string, bedId: string, idempotencyKey: string, allocatedBy: string): Promise<string> {
     const result = await this.sql`
       SELECT hostel.allocate_bed(${studentId}, ${bedId}, ${idempotencyKey}, ${allocatedBy}) as id

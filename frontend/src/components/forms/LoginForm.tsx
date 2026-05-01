@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { useAuthStore } from '@/store/authStore';
+import { useAuthStore, AuthState } from '@/store/authStore';
 import { Mail, Lock } from 'lucide-react';
 
 const LoginSchema = z.object({
@@ -19,7 +19,7 @@ type LoginFormValues = z.infer<typeof LoginSchema>;
 
 export function LoginForm() {
   const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const setAuth = useAuthStore((s: AuthState) => s.setAuth);
 
   const {
     register,
@@ -31,9 +31,9 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormValues) => {
     try {
-      // In a real app, this would call authService.login(data)
+
       await new Promise(resolve => setTimeout(resolve, 1200));
-      
+
       let role: any = 'student';
       if (data.email.includes('admin')) role = 'admin';
       else if (data.email.includes('faculty')) role = 'faculty';
@@ -48,7 +48,7 @@ export function LoginForm() {
 
       document.cookie = `access_token=${mockToken}; path=/; max-age=3600; SameSite=Lax`;
       setAuth(mockToken, mockUser);
-      
+
       toast.success('Signed in successfully');
       router.push(`/${role}/dashboard`);
     } catch (err: any) {

@@ -9,7 +9,6 @@ export function TopBar({ role }: { role: string }) {
   const router = useRouter();
   const pathname = router.pathname;
 
-  // Extract page title from pathname
   const title = pathname.split('/').pop()?.replace(/-/g, ' ') ?? 'UIMS';
 
   return (
@@ -23,7 +22,7 @@ export function TopBar({ role }: { role: string }) {
           <Bell size={20} />
           <span className="absolute right-1.5 top-1.5 flex h-2 w-2 rounded-full bg-red-500" />
         </button>
-        
+
         <div className="flex items-center gap-2 rounded-full bg-gray-50 p-1 pl-3 pr-1 border">
           <span className="text-xs font-medium text-gray-700 mobile:hidden">
             {user?.name || user?.email?.split('@')[0]}

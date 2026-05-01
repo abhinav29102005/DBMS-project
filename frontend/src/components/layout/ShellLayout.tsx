@@ -7,11 +7,6 @@ import { TopBar } from './TopBar';
 import { Role } from '@/types/api';
 import { ReactNode } from 'react';
 
-/**
- * ShellLayout composes the adaptive UI shell.
- * It renders a bottom navigation and top bar for mobile,
- * and a collapsible sidebar for desktop.
- */
 export function ShellLayout({ children, role }: { children: ReactNode; role: Role }) {
   const device = useDevice();
 

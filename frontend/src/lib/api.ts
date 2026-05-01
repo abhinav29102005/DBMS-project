@@ -1,8 +1,4 @@
-/**
- * UIMS Frontend API Layer
- * Custom fetch wrapper with typed responses, automatic JWT attachment, and error handling.
- * Designed for Cloudflare Pages (Edge Runtime).
- */
+
 
 const BASE = process.env.NEXT_PUBLIC_API_URL;
 
@@ -10,9 +6,6 @@ interface ApiOptions extends RequestInit {
   token?: string | null;
 }
 
-/**
- * Custom Error class for API failures.
- */
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -24,9 +17,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Typed fetch wrapper for API requests.
- */
 export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const { token, ...rest } = options;
 
@@ -48,8 +38,8 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new ApiError(
-      res.status, 
-      err.code ?? 'UNKNOWN', 
+      res.status,
+      err.code ?? 'UNKNOWN',
       err.message ?? 'Request failed'
     );
   }

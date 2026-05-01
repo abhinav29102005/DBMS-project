@@ -35,7 +35,7 @@ export function MarksEntryForm({ studentName, initialMarks, onSuccess }: Props) 
 
   const onSubmit = async (data: MarksFormValues) => {
     try {
-      // Mock API call
+
       await new Promise(resolve => setTimeout(resolve, 800));
       toast.success(`Marks updated for ${studentName}: Total ${data.internal + data.final}`);
       onSuccess();
@@ -54,15 +54,15 @@ export function MarksEntryForm({ studentName, initialMarks, onSuccess }: Props) 
       </div>
 
       <div className="space-y-4">
-        <Input 
-          label="Internal Marks (0-30)" 
-          type="number" 
+        <Input
+          label="Internal Marks (0-30)"
+          type="number"
           error={errors.internal?.message}
           {...register('internal', { valueAsNumber: true })}
         />
-        <Input 
-          label="Final Exam Marks (0-70)" 
-          type="number" 
+        <Input
+          label="Final Exam Marks (0-70)"
+          type="number"
           error={errors.final?.message}
           {...register('final', { valueAsNumber: true })}
         />

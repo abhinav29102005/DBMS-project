@@ -1,15 +1,7 @@
-/**
- * UIMS API — CORS Middleware
- *
- * Handles preflight OPTIONS requests and sets CORS headers
- * on all responses. Configured via CORS_ORIGIN env var.
- */
+
 
 import { type Env } from '../types/env';
 
-/**
- * Create CORS headers for the given origin configuration.
- */
 export function corsHeaders(env: Env): Record<string, string> {
   return {
     'Access-Control-Allow-Origin': env.CORS_ORIGIN || '*',
@@ -20,9 +12,6 @@ export function corsHeaders(env: Env): Record<string, string> {
   };
 }
 
-/**
- * Handle CORS preflight OPTIONS request.
- */
 export function handleOptions(env: Env): Response {
   return new Response(null, {
     status: 204,
@@ -30,9 +19,6 @@ export function handleOptions(env: Env): Response {
   });
 }
 
-/**
- * Attach CORS headers to an existing Response.
- */
 export function withCors(response: Response, env: Env): Response {
   const headers = new Headers(response.headers);
   for (const [key, value] of Object.entries(corsHeaders(env))) {

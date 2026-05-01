@@ -28,12 +28,12 @@ export default function StudentHostelPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {/* Primary Allocation Card */}
+            {}
             <Card className="relative overflow-hidden border-2 border-brand-100">
               <div className="absolute top-0 right-0 p-8 text-brand-50">
                 <Building2 size={120} />
               </div>
-              
+
               <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-bold uppercase">
@@ -79,7 +79,7 @@ export default function StudentHostelPage() {
               </div>
             </Card>
 
-            {/* Quick Actions / Services */}
+            {}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card title="Maintenance" subtitle="Report issues in your room" icon={ShieldCheck}>
                 <Button variant="outline" className="w-full mt-4">Raise Complaint</Button>
@@ -115,7 +115,7 @@ export default function StudentHostelPage() {
                     <span className="font-bold text-brand-600">$620.00</span>
                   </div>
                 </div>
-                
+
                 <Button variant="secondary" className="w-full">Download Receipt</Button>
               </div>
             </Card>

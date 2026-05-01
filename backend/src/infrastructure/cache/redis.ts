@@ -1,22 +1,8 @@
-/**
- * UIMS API — Upstash Redis Client
- *
- * Uses @upstash/redis REST-native client which works natively
- * in Cloudflare Workers (no TCP connection needed).
- *
- * Use cases:
- * - Cache auth.permissions per user_id (TTL 5 min)
- * - Cache reference data: departments, course catalog (TTL 1 hr)
- * - Rate limiting: sliding window per IP for /auth/login
- * - Idempotency keys: SET NX EX 86400 for hostel allocation
- */
+
 
 import { Redis } from '@upstash/redis';
 import type { Env } from '../../core/types/env';
 
-/**
- * Create an Upstash Redis client for the current request.
- */
 export function createRedisClient(env: Env): Redis {
   return new Redis({
     url: env.UPSTASH_REDIS_REST_URL,
@@ -24,12 +10,6 @@ export function createRedisClient(env: Env): Redis {
   });
 }
 
-// ─── Cache Helpers ─────────────────────────────────────────
-
-/**
- * Get a cached value, or compute and cache it.
- * Returns null if the factory returns null.
- */
 export async function cacheGet<T>(
   redis: Redis,
   key: string,
@@ -48,9 +28,6 @@ export async function cacheGet<T>(
   return value;
 }
 
-/**
- * Invalidate a cache key.
- */
 export async function cacheInvalidate(
   redis: Redis,
   key: string
@@ -58,12 +35,6 @@ export async function cacheInvalidate(
   await redis.del(key);
 }
 
-// ─── Rate Limiting ─────────────────────────────────────────
-
-/**
- * Sliding window rate limiter.
- * Returns { allowed: boolean, remaining: number, resetAt: number }
- */
 export async function checkRateLimit(
   redis: Redis,
   key: string,
@@ -72,7 +43,6 @@ export async function checkRateLimit(
 ): Promise<{ allowed: boolean; remaining: number; resetAt: number }> {
   const current = await redis.incr(key);
 
-  // Set expiry on first request in window
   if (current === 1) {
     await redis.expire(key, windowSeconds);
   }
@@ -87,13 +57,6 @@ export async function checkRateLimit(
   };
 }
 
-// ─── Idempotency ───────────────────────────────────────────
-
-/**
- * Try to acquire an idempotency lock.
- * Returns true if the key was newly set (first attempt).
- * Returns false if the key already exists (duplicate request).
- */
 export async function acquireIdempotencyKey(
   redis: Redis,
   key: string,

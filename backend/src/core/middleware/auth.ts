@@ -1,6 +1,4 @@
-/**
- * UIMS API — Auth Middleware
- */
+
 
 import { verifyAccessToken } from '../../modules/auth/domain/jwt';
 import { createRedisClient } from '../../infrastructure/cache/redis';
@@ -10,10 +8,6 @@ import { UnauthorizedError, ForbiddenError } from '../errors/app-error';
 import type { Env } from '../types/env';
 import type { AuthenticatedRequest, RequestContext } from '../types/context';
 
-/**
- * Require authentication for the request.
- * Verifies JWT and attaches RequestContext.
- */
 export async function requireAuth(
   request: AuthenticatedRequest,
   env: Env
@@ -26,24 +20,21 @@ export async function requireAuth(
   const token = authHeader.split(' ')[1];
   try {
     const payload = await verifyAccessToken(token, env.JWT_ACCESS_SECRET);
-    
-    // Get permissions from cache (Redis)
+
     const redis = createRedisClient(env);
     const permKey = `auth:perms:${payload.sub}`;
     let permissions: string[] | null = await redis.get(permKey);
 
     if (!permissions) {
-      // Fallback to DB if cache missed
+
       const sql = createDbClient(env);
       const userRepo = new UserRepository(sql);
       const details = await userRepo.getUserAuthDetails(payload.sub);
       permissions = details.permissions;
-      
-      // Re-populate cache
+
       await redis.set(permKey, JSON.stringify(permissions), { ex: 300 });
     }
 
-    // Build context
     const ctx: RequestContext = {
       userId: payload.sub,
       role: payload.role,
@@ -54,7 +45,6 @@ export async function requireAuth(
 
     request.ctx = ctx;
 
-    // Set DB session GUCs for RLS
     const sql = createDbClient(env);
     await setRequestContext(sql, ctx.userId, ctx.role, ctx.correlationId);
 
@@ -63,10 +53,6 @@ export async function requireAuth(
   }
 }
 
-/**
- * Require a specific permission for the request.
- * Must be used AFTER requireAuth.
- */
 export function requirePermission(permission: string) {
   return (request: AuthenticatedRequest) => {
     if (!request.ctx) {
@@ -79,10 +65,6 @@ export function requirePermission(permission: string) {
   };
 }
 
-/**
- * Require any of the specified roles.
- * Must be used AFTER requireAuth.
- */
 export function requireRole(roles: string[]) {
   return (request: AuthenticatedRequest) => {
     if (!request.ctx) {

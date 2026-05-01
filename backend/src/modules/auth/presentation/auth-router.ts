@@ -1,6 +1,4 @@
-/**
- * UIMS Auth Module — Auth Router
- */
+
 
 import { AutoRouter, type IRequest } from 'itty-router';
 import { createDbClient } from '../../../infrastructure/database/connection';
@@ -14,7 +12,6 @@ import type { Env } from '../../../core/types/env';
 
 const authRouter = AutoRouter<IRequest, [Env]>({ base: '/api/v1/auth' });
 
-// ─── Login Endpoint ──────────────────────────────────────────
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8)
@@ -23,7 +20,7 @@ const loginSchema = z.object({
 authRouter.post('/login', async (request, env) => {
   const body = await request.json();
   const result = loginSchema.safeParse(body);
-  
+
   if (!result.success) {
     throw new ValidationError('Invalid request body', { errors: result.error.format() });
   }
@@ -39,7 +36,6 @@ authRouter.post('/login', async (request, env) => {
   return Response.json(session);
 });
 
-// ─── Register Endpoint ───────────────────────────────────────
 const registerSchema = z.object({
   email: z.string().email(),
   firstName: z.string().min(1),

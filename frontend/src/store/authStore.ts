@@ -9,17 +9,13 @@ interface User {
   name?: string;
 }
 
-interface AuthState {
+export interface AuthState {
   accessToken: string | null;
   user: User | null;
   setAuth: (token: string, user: User) => void;
   clearAuth: () => void;
 }
 
-/**
- * Zustand store for managing authentication state.
- * Persists to localStorage to maintain session across refreshes.
- */
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({

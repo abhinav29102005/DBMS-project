@@ -1,18 +1,16 @@
-/**
- * UIMS — Application Constants
- */
+
 
 export const RATE_LIMITS = {
-  LOGIN:    { max: 5,  windowSec: 60  },   // 5 attempts/min
-  REGISTER: { max: 3,  windowSec: 300 },   // 3 accounts/5min
-  API:      { max: 60, windowSec: 60  },   // 60 req/min general
+  LOGIN:    { max: 5,  windowSec: 60  },
+  REGISTER: { max: 3,  windowSec: 300 },
+  API:      { max: 60, windowSec: 60  },
 } as const;
 
 export const CACHE_TTL = {
-  PERMISSIONS:  300,    // 5 min
-  DEPARTMENTS: 3600,    // 1 hr
-  COURSES:     3600,    // 1 hr
-  GRADE_SCALE: 86400,   // 24 hr
+  PERMISSIONS:  300,
+  DEPARTMENTS: 3600,
+  COURSES:     3600,
+  GRADE_SCALE: 86400,
 } as const;
 
 export const JWT_DEFAULTS = {

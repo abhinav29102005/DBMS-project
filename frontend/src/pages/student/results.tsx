@@ -32,15 +32,15 @@ export default function ResultsPage() {
     { accessorKey: 'courseName', header: 'Course' },
     { accessorKey: 'credits', header: 'Credits' },
     { accessorKey: 'marks', header: 'Marks' },
-    { 
-      accessorKey: 'grade', 
+    {
+      accessorKey: 'grade',
       header: 'Grade',
       cell: ({ row }) => (
         <span className="font-bold text-brand-600">{row.original.grade}</span>
       )
     },
-    { 
-      accessorKey: 'status', 
+    {
+      accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
         <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
@@ -107,8 +107,8 @@ export default function ResultsPage() {
               key={sem}
               onClick={() => setSemester(sem)}
               className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
-                semester === sem 
-                  ? 'bg-brand-50 text-brand-700 shadow-sm' 
+                semester === sem
+                  ? 'bg-brand-50 text-brand-700 shadow-sm'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
@@ -117,10 +117,10 @@ export default function ResultsPage() {
           ))}
         </div>
 
-        <DataTable 
-          data={MOCK_RESULTS} 
-          columns={columns} 
-          mobileCard={mobileCard} 
+        <DataTable
+          data={MOCK_RESULTS}
+          columns={columns}
+          mobileCard={mobileCard}
         />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -140,12 +140,12 @@ export default function ResultsPage() {
               </div>
             </div>
           </Card>
-          
+
           <Card className="md:col-span-2" title="Performance Analysis">
             <div className="h-40 flex items-end gap-4 px-2">
               {[45, 78, 62, 85, 92, 70].map((h, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                  <div 
+                  <div
                     className="w-full bg-brand-100 rounded-t-lg group-hover:bg-brand-500 transition-colors relative"
                     style={{ height: `${h}%` }}
                   >

@@ -1,6 +1,4 @@
-/**
- * UIMS Exam Module — Domain Entities
- */
+
 
 export interface ExamType {
   id: string;

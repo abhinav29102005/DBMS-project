@@ -1,15 +1,4 @@
-/**
- * UIMS API — Cloudflare Workers Entry Point
- *
- * Single Worker serving all domain modules via URL prefix routing.
- * Uses itty-router (<1KB, Workers-native) for routing.
- *
- * Request lifecycle:
- *   Client → Cloudflare edge → Workers isolate
- *         → CORS check → Correlation ID → Route handler
- *         → Upstash Redis (cache/rate limit) → Neon PostgreSQL
- *         → JSON response with X-Correlation-ID header
- */
+
 
 import { AutoRouter, type IRequest } from 'itty-router';
 import type { Env } from './core/types/env';
@@ -26,13 +15,7 @@ import { examRouter } from './modules/exam/presentation/exam-router';
 import { reportingRouter } from './modules/reporting/reporting-router';
 import type { AuthenticatedRequest } from './core/types/context';
 
-// ─── Router Setup ──────────────────────────────────────────
-
 const router = AutoRouter<AuthenticatedRequest, [Env]>();
-
-// ─── Health Check ──────────────────────────────────────────
-// No auth required. Used by cron-job.org to keep Neon awake
-// and by CI for smoke tests.
 
 router.get('/api/v1/health', async (_request, env) => {
   const sql = createDbClient(env);
@@ -57,16 +40,12 @@ router.get('/api/v1/health', async (_request, env) => {
   }
 });
 
-// ─── Module Routes ─────────────────────────────────────────
-
 router.all('/api/v1/auth/*', authRouter.fetch);
 router.all('/api/v1/academic/*', academicRouter.fetch);
 router.all('/api/v1/hostel/*', hostelRouter.fetch);
 router.all('/api/v1/library/*', libraryRouter.fetch);
 router.all('/api/v1/exam/*', examRouter.fetch);
 router.all('/api/v1/reporting/*', reportingRouter.fetch);
-
-// ─── 404 Catch-All ─────────────────────────────────────────
 
 router.all('*', () =>
   Response.json(
@@ -80,13 +59,10 @@ router.all('*', () =>
   )
 );
 
-// ─── Worker Export ──────────────────────────────────────────
-
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const correlationId = getCorrelationId(request);
 
-    // Handle CORS preflight
     if (request.method === 'OPTIONS') {
       return handleOptions(env);
     }

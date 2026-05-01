@@ -1,6 +1,4 @@
-/**
- * UIMS Hostel Module — Hostel Router
- */
+
 
 import { AutoRouter } from 'itty-router';
 import { createDbClient } from '../../../infrastructure/database/connection';
@@ -12,14 +10,12 @@ import type { AuthenticatedRequest } from '../../../core/types/context';
 
 const hostelRouter = AutoRouter<AuthenticatedRequest, [Env]>({ base: '/api/v1/hostel' });
 
-// ─── List Hostels ───────────────────────────────────────────
 hostelRouter.get('/hostels', requireAuth, async (request, env) => {
   const sql = createDbClient(env);
   const rows = await sql`SELECT * FROM hostel.hostels WHERE deleted_at IS NULL`;
   return Response.json(rows);
 });
 
-// ─── Get Availability ────────────────────────────────────────
 hostelRouter.get('/availability', requireAuth, async (request, env) => {
   const { hostelId } = request.query;
   if (!hostelId) throw new ValidationError('hostelId is required');
@@ -29,7 +25,6 @@ hostelRouter.get('/availability', requireAuth, async (request, env) => {
   return Response.json(rows);
 });
 
-// ─── Allocate Bed ────────────────────────────────────────────
 const allocateSchema = z.object({
   bedId: z.string().uuid(),
   idempotencyKey: z.string().optional()
@@ -41,8 +36,7 @@ hostelRouter.post('/allocate', requireAuth, async (request, env) => {
   if (!result.success) throw new ValidationError('Invalid request body');
 
   const sql = createDbClient(env);
-  
-  // Get student ID
+
   const studentRows = await sql`SELECT id FROM academic.students WHERE user_id = ${request.ctx!.userId}`;
   if (studentRows.length === 0) throw new ForbiddenError('Only students can request allocation');
   const studentId = studentRows[0].id;
