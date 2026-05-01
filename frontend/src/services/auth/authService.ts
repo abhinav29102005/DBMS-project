@@ -11,12 +11,37 @@ export interface LoginResponse {
   };
 }
 
+// Shape returned by the backend
+interface BackendLoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    role: string;
+    permissions: string[];
+  };
+}
+
 export const authService = {
   login: async (credentials: any): Promise<LoginResponse> => {
-    return apiFetch<LoginResponse>('/api/v1/auth/login', {
+    const raw = await apiFetch<BackendLoginResponse>('/api/v1/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
+
+    // Map backend shape → frontend shape
+    return {
+      token: raw.accessToken,
+      user: {
+        id: raw.user.id,
+        email: raw.user.email,
+        role: raw.user.role as Role,
+        name: `${raw.user.firstName} ${raw.user.lastName}`,
+      },
+    };
   },
 
   logout: () => {

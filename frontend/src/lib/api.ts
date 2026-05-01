@@ -1,5 +1,4 @@
 
-
 const BASE = process.env.NEXT_PUBLIC_API_URL;
 
 interface ApiOptions extends RequestInit {
@@ -17,6 +16,16 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Read the access_token cookie so authenticated requests work
+ * without having to pass the token explicitly every time.
+ */
+function getStoredToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  const match = document.cookie.match(/(?:^|;\s*)access_token=([^;]*)/);
+  return match ? match[1] : null;
+}
+
 export async function apiFetch<T = any>(path: string, options: ApiOptions = {}): Promise<T> {
   const { token, ...rest } = options;
 
@@ -24,13 +33,14 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
     console.warn('NEXT_PUBLIC_API_URL is not defined');
   }
 
+  const resolvedToken = token ?? getStoredToken();
   const url = `${BASE}${path}`;
 
   const res = await fetch(url, {
     ...rest,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(resolvedToken ? { Authorization: `Bearer ${resolvedToken}` } : {}),
       ...rest.headers,
     },
   });
@@ -39,8 +49,8 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
     const err = await res.json().catch(() => ({}));
     throw new ApiError(
       res.status,
-      err.code ?? 'UNKNOWN',
-      err.message ?? 'Request failed'
+      err.code ?? err.error?.code ?? 'UNKNOWN',
+      err.message ?? err.error?.message ?? 'Request failed'
     );
   }
 
