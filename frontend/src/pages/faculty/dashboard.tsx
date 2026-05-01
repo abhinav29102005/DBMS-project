@@ -1,6 +1,9 @@
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore } from '@/store/authStore';
+import { useFacultyStats, useFacultySchedule } from '@/hooks/useFaculty';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import {
   Users,
   BookOpen,
@@ -13,6 +16,16 @@ import Head from 'next/head';
 
 export default function FacultyDashboard() {
   const user = useAuthStore(s => s.user);
+  const { data: stats, isLoading: statsLoading, isError: statsError, refetch: refetchStats } = useFacultyStats();
+  const { data: schedule, isLoading: scheduleLoading } = useFacultySchedule();
+
+  if (statsError) {
+    return (
+      <ShellLayout role="faculty">
+        <ErrorState onRetry={refetchStats} />
+      </ShellLayout>
+    );
+  }
 
   return (
     <ShellLayout role="faculty">
@@ -38,22 +51,30 @@ export default function FacultyDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card title="Total Students" subtitle="Under My Instruction" icon={Users}>
             <div className="mt-2">
-              <span className="text-3xl font-bold text-gray-900">182</span>
+              {statsLoading ? <Skeleton className="h-9 w-16" /> : (
+                <span className="text-3xl font-bold text-gray-900">{stats?.totalStudents || 0}</span>
+              )}
             </div>
           </Card>
           <Card title="Active Courses" subtitle="This Semester" icon={BookOpen}>
             <div className="mt-2">
-              <span className="text-3xl font-bold text-gray-900">3</span>
+              {statsLoading ? <Skeleton className="h-9 w-16" /> : (
+                <span className="text-3xl font-bold text-gray-900">{stats?.activeCourses || 0}</span>
+              )}
             </div>
           </Card>
           <Card title="Avg. Attendance" subtitle="Class Performance" icon={Calendar}>
             <div className="mt-2">
-              <span className="text-3xl font-bold text-gray-900">76%</span>
+              {statsLoading ? <Skeleton className="h-9 w-16" /> : (
+                <span className="text-3xl font-bold text-gray-900">{stats?.avgAttendance || '0%'}</span>
+              )}
             </div>
           </Card>
           <Card title="Pending Marks" subtitle="Exam Controller" icon={FileText}>
             <div className="mt-2">
-              <span className="text-3xl font-bold text-orange-600">45</span>
+              {statsLoading ? <Skeleton className="h-9 w-16" /> : (
+                <span className="text-3xl font-bold text-orange-600">{stats?.pendingMarks || 0}</span>
+              )}
             </div>
           </Card>
         </div>
@@ -68,21 +89,26 @@ export default function FacultyDashboard() {
             </div>
 
             <div className="space-y-4">
-              {[
-                { time: '10:30 AM', subject: 'Database Management Systems', section: 'CS-A', room: 'Lab 402' },
-                { time: '01:30 PM', subject: 'Software Engineering', section: 'CS-C', room: 'Room 101' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-6 p-6 rounded-2xl bg-white border border-gray-100 hover:border-brand-200 hover:shadow-md transition-all group">
-                  <div className="w-24 text-sm font-bold text-gray-400 group-hover:text-brand-600 transition-colors">
-                    {item.time}
+              {scheduleLoading ? (
+                [1, 2].map(i => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)
+              ) : (schedule?.length || 0) > 0 ? (
+                schedule?.map((item, i) => (
+                  <div key={i} className="flex items-center gap-6 p-6 rounded-2xl bg-white border border-gray-100 hover:border-brand-200 hover:shadow-md transition-all group">
+                    <div className="w-24 text-sm font-bold text-gray-400 group-hover:text-brand-600 transition-colors">
+                      {item.time}
+                    </div>
+                    <div className={`w-1.5 h-12 rounded-full ${item.color || 'bg-brand-500'}`} />
+                    <div className="flex-1">
+                      <h4 className="font-bold text-gray-900">{item.subject}</h4>
+                      <p className="text-xs text-gray-500">{item.section} • {item.room}</p>
+                    </div>
                   </div>
-                  <div className="w-1.5 h-12 rounded-full bg-brand-500" />
-                  <div className="flex-1">
-                    <h4 className="font-bold text-gray-900">{item.subject}</h4>
-                    <p className="text-xs text-gray-500">{item.section} • {item.room}</p>
-                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center bg-white rounded-2xl border border-dashed border-gray-200 text-gray-400">
+                  No lectures scheduled for today.
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

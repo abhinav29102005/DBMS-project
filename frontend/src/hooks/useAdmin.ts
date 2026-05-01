@@ -1,6 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { hostelService } from '@/services/hostel/hostelService';
 import { libraryService } from '@/services/library/libraryService';
+import { adminService, AdminStats } from '@/services/academic/adminService';
+
+export function useAdminStats() {
+  return useQuery<AdminStats>({
+    queryKey: ['admin', 'stats'],
+    queryFn: adminService.getDashboardStats,
+  });
+}
 
 export function useHostelOccupancy() {
   return useQuery({
@@ -12,10 +20,7 @@ export function useHostelOccupancy() {
 export function useLibraryStats() {
   return useQuery({
     queryKey: ['admin', 'library', 'stats'],
-    queryFn: () => {
-
-      return {};
-    },
+    queryFn: libraryService.getStats,
   });
 }
 
@@ -23,7 +28,6 @@ export function useAllStudents(filters?: any) {
   return useQuery({
     queryKey: ['admin', 'students', filters],
     queryFn: () => {
-
       return [];
     },
   });

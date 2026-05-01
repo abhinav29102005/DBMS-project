@@ -1,13 +1,25 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { examService } from '@/services/exam/examService';
+import { facultyService, FacultyStats, Lecture } from '@/services/academic/facultyService';
+
+export function useFacultyStats() {
+  return useQuery<FacultyStats>({
+    queryKey: ['faculty', 'stats'],
+    queryFn: facultyService.getDashboardStats,
+  });
+}
+
+export function useFacultySchedule() {
+  return useQuery<Lecture[]>({
+    queryKey: ['faculty', 'schedule'],
+    queryFn: facultyService.getSchedule,
+  });
+}
 
 export function useFacultyOfferings() {
   return useQuery({
     queryKey: ['faculty', 'offerings'],
-    queryFn: () => {
-
-      return [];
-    },
+    queryFn: facultyService.getOfferings,
   });
 }
 

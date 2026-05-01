@@ -1,6 +1,9 @@
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore, AuthState } from '@/store/authStore';
+import { useAdminStats } from '@/hooks/useAdmin';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/feedback/ErrorState';
 import {
   Users,
   Building2,
@@ -26,6 +29,15 @@ const ENROLLMENT_DATA = [
 
 export default function AdminDashboard() {
   const user = useAuthStore((s: AuthState) => s.user);
+  const { data: stats, isLoading, isError, refetch } = useAdminStats();
+
+  if (isError) {
+    return (
+      <ShellLayout role="admin">
+        <ErrorState onRetry={refetch} />
+      </ShellLayout>
+    );
+  }
 
   return (
     <ShellLayout role="admin">
@@ -48,26 +60,42 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card title="Total Students" subtitle="Active Enrollment" icon={Users}>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-gray-900">12,482</span>
-              <span className="text-sm font-medium text-green-600">+12%</span>
+              {isLoading ? <Skeleton className="h-9 w-24" /> : (
+                <>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.totalStudents?.toLocaleString() || 0}</span>
+                  <span className="text-sm font-medium text-green-600">+12%</span>
+                </>
+              )}
             </div>
           </Card>
-          <Card title="Faculty" subtitle="Across 12 Departments" icon={UserCheck}>
+          <Card title="Faculty" subtitle="Across Departments" icon={UserCheck}>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-gray-900">842</span>
-              <span className="text-sm font-medium text-gray-500">Full-time</span>
+              {isLoading ? <Skeleton className="h-9 w-24" /> : (
+                <>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.totalFaculty || 0}</span>
+                  <span className="text-sm font-medium text-gray-500">Full-time</span>
+                </>
+              )}
             </div>
           </Card>
-          <Card title="Hostel Occupancy" subtitle="Blocks A-F" icon={Building2}>
+          <Card title="System Health" subtitle="Service Status" icon={Building2}>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-gray-900">92%</span>
-              <span className="text-sm font-medium text-orange-600">High</span>
+              {isLoading ? <Skeleton className="h-9 w-24" /> : (
+                <>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.systemHealth || '99%'}</span>
+                  <span className="text-sm font-medium text-green-600">Optimal</span>
+                </>
+              )}
             </div>
           </Card>
-          <Card title="Resources" subtitle="Library & Labs" icon={BookOpen}>
+          <Card title="Active Courses" subtitle="System Resources" icon={BookOpen}>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-gray-900">98%</span>
-              <span className="text-sm font-medium text-green-600">Optimal</span>
+              {isLoading ? <Skeleton className="h-9 w-24" /> : (
+                <>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.activeCourses || 0}</span>
+                  <span className="text-sm font-medium text-green-600">Syncing</span>
+                </>
+              )}
             </div>
           </Card>
         </div>

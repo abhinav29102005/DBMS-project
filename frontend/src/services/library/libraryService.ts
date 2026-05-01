@@ -24,5 +24,9 @@ export const libraryService = {
     return apiFetch(`/api/v1/library/issues/${id}/return`, {
       method: 'POST',
     });
+  },
+
+  getStats: async () => {
+    return apiFetch('/api/v1/reporting/library-stats');
   }
 };

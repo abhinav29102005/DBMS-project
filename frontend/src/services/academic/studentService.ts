@@ -21,5 +21,9 @@ export const studentService = {
 
   getLibraryIssues: async () => {
     return apiFetch('/api/v1/library/members/me/issues');
+  },
+
+  getSchedule: async () => {
+    return apiFetch('/api/v1/academic/students/me/schedule');
   }
 };

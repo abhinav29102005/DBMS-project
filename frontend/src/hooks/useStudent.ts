@@ -36,3 +36,10 @@ export function useStudentLibrary() {
     queryFn: studentService.getLibraryIssues,
   });
 }
+
+export function useStudentSchedule() {
+  return useQuery({
+    queryKey: ['student', 'schedule'],
+    queryFn: studentService.getSchedule,
+  });
+}
