@@ -6,6 +6,26 @@ import type { User, Role, Permission } from '../domain/entities';
 export class UserRepository {
   constructor(private sql: NeonQueryFunction<false, false>) {}
 
+  private mapUser(row: any): User | null {
+    if (!row) return null;
+    return {
+      id: row.id,
+      email: row.email,
+      phone: row.phone,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      passwordHash: row.password_hash,
+      passwordAlgo: row.password_algo,
+      status: row.status,
+      lastLoginAt: row.last_login_at,
+      failedLoginCount: row.failed_login_count,
+      version: row.version,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      deletedAt: row.deleted_at,
+    };
+  }
+
   async findByEmail(email: string): Promise<User | null> {
     const rows = await this.sql`
       SELECT * FROM auth.users
@@ -13,7 +33,7 @@ export class UserRepository {
         AND deleted_at IS NULL
       LIMIT 1
     `;
-    return (rows[0] as User) || null;
+    return this.mapUser(rows[0]);
   }
 
   async findById(id: string): Promise<User | null> {
@@ -23,7 +43,7 @@ export class UserRepository {
         AND deleted_at IS NULL
       LIMIT 1
     `;
-    return (rows[0] as User) || null;
+    return this.mapUser(rows[0]);
   }
 
   async create(user: Partial<User>): Promise<User> {
@@ -36,7 +56,7 @@ export class UserRepository {
       )
       RETURNING *
     `;
-    return rows[0] as User;
+    return this.mapUser(rows[0])!;
   }
 
   async updateLoginStats(id: string): Promise<void> {
