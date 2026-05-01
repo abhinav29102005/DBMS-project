@@ -40,7 +40,7 @@ port = 8787
 name = "uims-api-dev"
 [env.dev.vars]
 APP_ENV = "development"
-CORS_ORIGIN = "http://localhost:5173"
+CORS_ORIGIN = "https://uims.abhinavkumarsingh.tech/"
 
 [observability]
 [observability.logs]

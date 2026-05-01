@@ -4,7 +4,7 @@ import { type Env } from '../types/env';
 
 export function corsHeaders(env: Env): Record<string, string> {
   return {
-    'Access-Control-Allow-Origin': env.CORS_ORIGIN || '*',
+    'Access-Control-Allow-Origin': env.CORS_ORIGIN || 'https://uims.abhinavkumarsingh.tech',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Correlation-ID, X-Idempotency-Key',
     'Access-Control-Expose-Headers': 'X-Correlation-ID',
