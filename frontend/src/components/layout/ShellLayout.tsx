@@ -31,7 +31,7 @@ export function ShellLayout({ children, role }: { children: ReactNode; role: Rol
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -10 },
     transition: { duration: 0.3, ease: 'easeOut' }
-  };
+  } as const;
 
   if (device === 'mobile') {
     return (
