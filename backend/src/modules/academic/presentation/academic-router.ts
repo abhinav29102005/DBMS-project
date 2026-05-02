@@ -62,7 +62,7 @@ academicRouter.get('/students/me/stats', requireAuth, requireRole(['student']), 
 
   const [courses, results] = await Promise.all([
     sql`SELECT COUNT(*) as count FROM academic.enrollments WHERE student_id = ${student.id}`,
-    sql`SELECT grade FROM exam.results WHERE student_id = ${student.id} AND status = 'Pass'`
+    sql`SELECT grade_code as grade FROM exam.final_results WHERE student_id = ${student.id} AND result_status = 'pass'`
   ]);
 
   // Mocking GPA for now based on results
@@ -172,7 +172,7 @@ academicRouter.post('/faculty/marks', requireAuth, requireRole(['faculty']), asy
   const sql = createDbClient(env);
   
   await sql`
-    INSERT INTO exam.results (
+    INSERT INTO exam.final_results (
       student_id, course_offering_id, marks_internal, marks_external, grade, status
     ) VALUES (
       ${result.data.studentId}, ${result.data.offeringId}, 

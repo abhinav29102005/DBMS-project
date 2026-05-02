@@ -106,7 +106,7 @@ export class AcademicRepository {
   async getStudentResults(studentId: string): Promise<any[]> {
     return this.sql`
       SELECT r.*, c.course_code, c.title, c.credits
-      FROM exam.results r
+      FROM exam.final_results r
       JOIN academic.course_offerings co ON r.course_offering_id = co.id
       JOIN academic.courses c ON co.course_id = c.id
       WHERE r.student_id = ${studentId}
