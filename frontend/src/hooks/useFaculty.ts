@@ -31,13 +31,12 @@ export function useExamMarks(examId: string) {
   });
 }
 
-export function useUpdateMarks() {
+export function useRecordMarks() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ examId, studentId, marks }: { examId: string, studentId: string, marks: number }) =>
-      examService.updateMarks(examId, studentId, marks),
-    onSuccess: (_, variables) => {
-      qc.invalidateQueries({ queryKey: ['exam', 'marks', variables.examId] });
+    mutationFn: (data: any) => facultyService.recordMarks(data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['faculty', 'stats'] });
     },
   });
 }

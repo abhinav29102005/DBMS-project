@@ -92,9 +92,12 @@ export class UserRepository {
 
   async getUserAuthDetails(userId: string): Promise<{
     role: string,
+    email: string,
     scopeId?: string,
     permissions: string[]
   }> {
+    const userRows = await this.sql`SELECT email FROM auth.users WHERE id = ${userId}`;
+    const email = userRows[0]?.email || '';
 
     const roleRows = await this.sql`
       SELECT r.code, ur.scope_id
@@ -106,7 +109,7 @@ export class UserRepository {
     `;
 
     if (roleRows.length === 0) {
-      return { role: 'guest', permissions: [] };
+      return { role: 'guest', email, permissions: [] };
     }
 
     const role = roleRows[0].code;
@@ -122,6 +125,7 @@ export class UserRepository {
 
     return {
       role,
+      email,
       scopeId,
       permissions: permRows.map(r => r.code)
     };

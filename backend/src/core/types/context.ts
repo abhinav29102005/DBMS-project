@@ -1,15 +1,11 @@
 import type { IRequest } from 'itty-router';
 
 export interface RequestContext {
-
   userId: string;
-
+  email: string;
   role: string;
-
   permissions: string[];
-
   correlationId: string;
-
   scopeId?: string;
 }
 

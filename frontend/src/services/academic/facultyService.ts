@@ -26,5 +26,9 @@ export const facultyService = {
 
   getOfferings: async () => {
     return apiFetch('/api/v1/academic/faculty/me/offerings');
+  },
+
+  recordMarks: async (data: any) => {
+    return apiFetch.post('/api/v1/academic/faculty/marks', data);
   }
 };

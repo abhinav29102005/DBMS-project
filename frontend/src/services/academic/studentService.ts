@@ -7,20 +7,20 @@ export const studentService = {
   },
 
   getEnrollments: async () => {
-    return apiFetch('/api/v1/academic/students/me/enrollments');
+    return apiFetch('/api/v1/academic/students/me/courses');
   },
 
   getResults: async (semesterId?: string) => {
-    const query = semesterId ? `?semester_id=${semesterId}` : '';
-    return apiFetch(`/api/v1/exam/students/me/results${query}`);
+    const query = semesterId ? `?semesterId=${semesterId}` : '';
+    return apiFetch(`/api/v1/academic/students/me/results${query}`);
   },
 
   getAllocations: async () => {
-    return apiFetch('/api/v1/hostel/students/me/allocations');
+    return apiFetch('/api/v1/hostel/my-allocation');
   },
 
   getLibraryIssues: async () => {
-    return apiFetch('/api/v1/library/members/me/issues');
+    return apiFetch('/api/v1/library/my-issues');
   },
 
   getSchedule: async () => {

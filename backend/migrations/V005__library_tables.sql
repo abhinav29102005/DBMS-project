@@ -33,11 +33,13 @@ CREATE TABLE library.subjects (
 -- ───────────────────────────────────────────────────────────────
 -- library.books — bibliographic titles (not physical copies)
 -- ───────────────────────────────────────────────────────────────
-CREATE TABLE library.books (
+CREATE TABLE IF NOT EXISTS library.books (
   id               UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   isbn             TEXT        NOT NULL,
   title            TEXT        NOT NULL,
   subtitle         TEXT,
+  author           TEXT,       -- Added for simplicity
+  publisher        TEXT,       -- Added for simplicity
   edition          SMALLINT    DEFAULT 1,
   publisher_id     UUID        REFERENCES library.publishers(id) ON DELETE SET NULL,
   publication_year SMALLINT,

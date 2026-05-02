@@ -4,39 +4,48 @@ import { Card } from '@/components/ui/Card';
 import { ColumnDef } from '@tanstack/react-table';
 import { GraduationCap, Download, Filter } from 'lucide-react';
 import Head from 'next/head';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-interface Result {
-  id: string;
-  courseCode: string;
-  courseName: string;
-  credits: number;
-  grade: string;
-  marks: number;
-  status: 'Pass' | 'Fail' | 'Pending';
-}
+import { useStudentResults } from '@/hooks/useStudent';
+import { useSemesters } from '@/hooks/useAcademic';
+import { Loading } from '@/components/feedback/Loading';
 
-const MOCK_RESULTS: Result[] = [
-  { id: '1', courseCode: 'CS101', courseName: 'Introduction to Programming', credits: 4, grade: 'A', marks: 88, status: 'Pass' },
-  { id: '2', courseCode: 'CS102', courseName: 'Data Structures', credits: 4, grade: 'B+', marks: 78, status: 'Pass' },
-  { id: '3', courseCode: 'MA101', courseName: 'Calculus I', credits: 3, grade: 'A-', marks: 82, status: 'Pass' },
-  { id: '4', courseCode: 'PH101', courseName: 'Engineering Physics', credits: 3, grade: 'B', marks: 72, status: 'Pass' },
-  { id: '5', courseCode: 'CS201', courseName: 'Database Systems', credits: 4, grade: 'A', marks: 92, status: 'Pass' },
-];
+import { ErrorState } from '@/components/feedback/ErrorState';
 
 export default function ResultsPage() {
-  const [semester, setSemester] = useState('Fall 2023');
+  const { data: semesters } = useSemesters();
+  const [selectedSemesterId, setSelectedSemesterId] = useState<string | undefined>(undefined);
+  
+  const { data: results, isLoading, isError, refetch } = useStudentResults(selectedSemesterId);
 
-  const columns: ColumnDef<Result>[] = [
+  if (isError) return <ShellLayout role="student"><ErrorState onRetry={refetch} /></ShellLayout>;
+
+  useEffect(() => {
+    if (semesters && semesters.length > 0 && !selectedSemesterId) {
+      const current = semesters.find(s => s.isCurrent) || semesters[0];
+      setSelectedSemesterId(current.id);
+    }
+  }, [semesters, selectedSemesterId]);
+
+  const columns: ColumnDef<any>[] = [
     { accessorKey: 'courseCode', header: 'Code' },
-    { accessorKey: 'courseName', header: 'Course' },
+    { accessorKey: 'title', header: 'Course' },
     { accessorKey: 'credits', header: 'Credits' },
-    { accessorKey: 'marks', header: 'Marks' },
+    { 
+      accessorKey: 'marksInternal', 
+      header: 'Internal',
+      cell: ({ row }) => row.original.marksInternal ?? '-'
+    },
+    { 
+      accessorKey: 'marksExternal', 
+      header: 'External',
+      cell: ({ row }) => row.original.marksExternal ?? '-'
+    },
     {
       accessorKey: 'grade',
       header: 'Grade',
       cell: ({ row }) => (
-        <span className="font-bold text-brand-600">{row.original.grade}</span>
+        <span className="font-bold text-brand-600">{row.original.grade || '-'}</span>
       )
     },
     {
@@ -44,35 +53,36 @@ export default function ResultsPage() {
       header: 'Status',
       cell: ({ row }) => (
         <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-          row.original.status === 'Pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          row.original.status === 'Pass' ? 'bg-green-100 text-green-700' : 
+          row.original.status === 'Fail' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
         }`}>
-          {row.original.status}
+          {row.original.status || 'Pending'}
         </span>
       )
     },
   ];
 
-  const mobileCard = (result: Result) => (
+  const mobileCard = (result: any) => (
     <Card className="p-4">
       <div className="flex justify-between items-start mb-2">
         <div>
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{result.courseCode}</span>
-          <h4 className="font-bold text-gray-900">{result.courseName}</h4>
+          <h4 className="font-bold text-gray-900">{result.title}</h4>
         </div>
         <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
           result.status === 'Pass' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
         }`}>
-          {result.status}
+          {result.status || 'Pending'}
         </span>
       </div>
       <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-50">
         <div className="flex flex-col">
           <span className="text-[10px] text-gray-400 uppercase">Grade</span>
-          <span className="font-bold text-brand-600">{result.grade}</span>
+          <span className="font-bold text-brand-600">{result.grade || '-'}</span>
         </div>
         <div className="flex flex-col text-right">
-          <span className="text-[10px] text-gray-400 uppercase">Marks</span>
-          <span className="font-bold text-gray-900">{result.marks}/100</span>
+          <span className="text-[10px] text-gray-400 uppercase">Total Marks</span>
+          <span className="font-bold text-gray-900">{(result.marksInternal || 0) + (result.marksExternal || 0)}</span>
         </div>
       </div>
     </Card>
@@ -102,60 +112,72 @@ export default function ResultsPage() {
         </div>
 
         <div className="flex items-center gap-4 bg-white p-2 rounded-2xl border border-gray-100 shadow-sm overflow-x-auto no-scrollbar">
-          {['Fall 2023', 'Spring 2023', 'Fall 2022', 'Spring 2022'].map((sem) => (
+          {semesters?.map((sem: any) => (
             <button
-              key={sem}
-              onClick={() => setSemester(sem)}
+              key={sem.id}
+              onClick={() => setSelectedSemesterId(sem.id)}
               className={`px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
-                semester === sem
+                selectedSemesterId === sem.id
                   ? 'bg-brand-50 text-brand-700 shadow-sm'
                   : 'text-gray-400 hover:text-gray-600'
               }`}
             >
-              {sem}
+              {sem.name}
             </button>
           ))}
         </div>
 
-        <DataTable
-          data={MOCK_RESULTS}
-          columns={columns}
-          mobileCard={mobileCard}
-        />
+        {isLoading ? (
+          <Loading />
+        ) : (
+          <DataTable
+            data={results || []}
+            columns={columns}
+            mobileCard={mobileCard}
+          />
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="md:col-span-1 bg-brand-50 border-brand-100" title="Semester Summary" icon={GraduationCap}>
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">SGPA</span>
-                <span className="text-xl font-bold text-brand-700">3.85</span>
+                <span className="text-sm text-gray-600">Courses Cleared</span>
+                <span className="text-xl font-bold text-brand-700">
+                  {results?.filter((r: any) => r.status === 'Pass').length || 0} / {results?.length || 0}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600">Credits Earned</span>
-                <span className="text-xl font-bold text-brand-700">18 / 18</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-600">Rank in Class</span>
-                <span className="text-xl font-bold text-brand-700">#4</span>
+                <span className="text-xl font-bold text-brand-700">
+                  {results?.filter((r: any) => r.status === 'Pass').reduce((acc: number, r: any) => acc + (r.credits || 0), 0) || 0}
+                </span>
               </div>
             </div>
           </Card>
 
           <Card className="md:col-span-2" title="Performance Analysis">
-            <div className="h-40 flex items-end gap-4 px-2">
-              {[45, 78, 62, 85, 92, 70].map((h, i) => (
-                <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
-                  <div
-                    className="w-full bg-brand-100 rounded-t-lg group-hover:bg-brand-500 transition-colors relative"
-                    style={{ height: `${h}%` }}
-                  >
-                    <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-brand-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {h}
-                    </span>
+             <div className="h-40 flex items-end gap-4 px-2">
+              {results?.map((r: any, i: number) => {
+                const total = (r.marksInternal || 0) + (r.marksExternal || 0);
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-2 group">
+                    <div
+                      className="w-full bg-brand-100 rounded-t-lg group-hover:bg-brand-500 transition-colors relative"
+                      style={{ height: `${Math.min(total, 100)}%` }}
+                    >
+                      <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold text-brand-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {total}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-400">{r.courseCode}</span>
                   </div>
-                  <span className="text-[10px] font-bold text-gray-400">CS{i+101}</span>
+                );
+              })}
+              {(!results || results.length === 0) && (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+                  No data available for this semester
                 </div>
-              ))}
+              )}
             </div>
           </Card>
         </div>

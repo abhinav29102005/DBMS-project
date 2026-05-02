@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 const PUBLIC_PATHS = ['/auth/login', '/auth/register', '/reset-password', '/api/health'];
 
 const ROLE_ROUTES: Record<string, string[]> = {
-  student:   ['/student'],
-  faculty:   ['/faculty'],
+  student:   ['/student', '/profile/setup'],
+  faculty:   ['/faculty', '/profile/setup'],
   admin:     ['/admin'],
   staff:     ['/staff'],
   librarian: ['/admin/library'],

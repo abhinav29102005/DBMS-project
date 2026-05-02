@@ -1,18 +1,22 @@
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Building2, MapPin, User, ShieldCheck, CreditCard, Calendar } from 'lucide-react';
+import { Building2, MapPin, User, ShieldCheck, CreditCard, Calendar, QrCode } from 'lucide-react';
 import Head from 'next/head';
+import { QRCodeCanvas } from 'qrcode.react';
+import { exportToPDF } from '@/lib/pdfExport';
+
+import { useStudentHostel } from '@/hooks/useStudent';
+import { Loading } from '@/components/feedback/Loading';
+import { useState } from 'react';
+
+import { ErrorState } from '@/components/feedback/ErrorState';
 
 export default function StudentHostelPage() {
-  const allocation = {
-    block: 'A',
-    room: '302',
-    bed: '1',
-    warden: 'Mr. Rajesh Kumar',
-    fees: 'Clear',
-    dueDate: '2024-06-15'
-  };
+  const { data: allocation, isLoading, isError, refetch } = useStudentHostel();
+
+  if (isLoading) return <ShellLayout role="student"><Loading fullScreen /></ShellLayout>;
+  if (isError) return <ShellLayout role="student"><ErrorState onRetry={refetch} /></ShellLayout>;
 
   return (
     <ShellLayout role="student">
@@ -28,64 +32,82 @@ export default function StudentHostelPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {}
-            <Card className="relative overflow-hidden border-2 border-brand-100">
-              <div className="absolute top-0 right-0 p-8 text-brand-50">
-                <Building2 size={120} />
-              </div>
-
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-bold uppercase">
-                    Active Allocation
-                  </div>
+            {allocation ? (
+              <Card className="relative overflow-hidden border-2 border-brand-100">
+                <div className="absolute top-0 right-0 p-8 text-brand-50">
+                  <Building2 size={120} />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                  <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Block</span>
-                    <h3 className="text-4xl font-black text-gray-900">{allocation.block}</h3>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="px-3 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-bold uppercase">
+                      Active Allocation
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Room</span>
-                    <h3 className="text-4xl font-black text-gray-900">{allocation.room}</h3>
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bed No.</span>
-                    <h3 className="text-4xl font-black text-gray-900">{allocation.bed}</h3>
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
-                      <User size={20} />
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                    <div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hostel</span>
+                      <h3 className="text-xl font-black text-gray-900 truncate">{allocation.hostelName}</h3>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">Warden</p>
-                      <p className="text-sm font-bold text-gray-700">{allocation.warden}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
-                      <MapPin size={20} />
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Room</span>
+                      <h3 className="text-4xl font-black text-gray-900">{allocation.roomNo}</h3>
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">Location</p>
-                      <p className="text-sm font-bold text-gray-700">North Campus, Near Gate 2</p>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bed No.</span>
+                      <h3 className="text-4xl font-black text-gray-900">{allocation.bedLabel}</h3>
                     </div>
                   </div>
-                </div>
-              </div>
-            </Card>
 
-            {}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-gray-100">
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                        <User size={20} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase">Block</p>
+                        <p className="text-sm font-bold text-gray-700">{allocation.blockName}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                        <MapPin size={20} />
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase">Status</p>
+                        <p className="text-sm font-bold text-gray-700 uppercase">{allocation.status}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {allocation.qr_code_id && (
+                    <div className="absolute top-6 right-6 hidden sm:block bg-white p-2 rounded-lg shadow-sm border">
+                      <QRCodeCanvas value={allocation.qr_code_id} size={80} level="H" />
+                      <p className="text-[8px] text-center mt-1 text-gray-500 uppercase font-bold">Entry Pass</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ) : (
+              <Card className="p-12 text-center flex flex-col items-center justify-center">
+                <div className="h-20 w-20 bg-gray-50 rounded-full flex items-center justify-center text-gray-400 mb-6">
+                   <Building2 size={40} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">No Active Allocation</h3>
+                <p className="text-gray-500 max-w-sm mx-auto mb-8">
+                  You don't have a hostel room allocated yet. You can browse available hostels and request an allocation.
+                </p>
+                <Button onClick={() => window.location.href = '/student/hostel/browse'}>Browse Hostels</Button>
+              </Card>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card title="Maintenance" subtitle="Report issues in your room" icon={ShieldCheck}>
-                <Button variant="outline" className="w-full mt-4">Raise Complaint</Button>
+                <Button variant="outline" className="w-full mt-4" disabled={!allocation}>Raise Complaint</Button>
               </Card>
               <Card title="Outpass" subtitle="Apply for leave" icon={Calendar}>
-                <Button variant="outline" className="w-full mt-4">New Request</Button>
+                <Button variant="outline" className="w-full mt-4" disabled={!allocation}>New Request</Button>
               </Card>
             </div>
           </div>
@@ -93,30 +115,37 @@ export default function StudentHostelPage() {
           <div className="space-y-6">
             <Card title="Billing Status" icon={CreditCard}>
               <div className="space-y-6">
-                <div className="p-4 rounded-2xl bg-green-50 border border-green-100">
+                <div className={`p-4 rounded-2xl border ${allocation ? 'bg-green-50 border-green-100' : 'bg-gray-50 border-gray-100'}`}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-bold text-green-700 uppercase">Hostel Fees</span>
-                    <span className="text-xs font-bold text-green-700 uppercase">{allocation.fees}</span>
+                    <span className={`text-xs font-bold uppercase ${allocation ? 'text-green-700' : 'text-gray-700'}`}>Hostel Fees</span>
+                    <span className={`text-xs font-bold uppercase ${allocation ? 'text-green-700' : 'text-gray-700'}`}>{allocation ? 'Clear' : 'N/A'}</span>
                   </div>
-                  <p className="text-[10px] text-green-600">No pending dues for current term.</p>
+                  <p className={`text-[10px] ${allocation ? 'text-green-600' : 'text-gray-600'}`}>
+                    {allocation ? 'No pending dues for current term.' : 'Apply for allocation to see billing.'}
+                  </p>
                 </div>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Security Deposit</span>
-                    <span className="font-bold text-gray-900">$500.00</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Mess Charges</span>
-                    <span className="font-bold text-gray-900">$120.00</span>
-                  </div>
-                  <div className="pt-3 border-t border-gray-100 flex justify-between text-base">
-                    <span className="font-bold text-gray-900">Total Paid</span>
-                    <span className="font-bold text-brand-600">$620.00</span>
-                  </div>
-                </div>
-
-                <Button variant="secondary" className="w-full">Download Receipt</Button>
+                <Button 
+                  variant="secondary" 
+                  className="w-full" 
+                  disabled={!allocation}
+                  onClick={() => {
+                    exportToPDF({
+                      title: 'Hostel Allocation Receipt',
+                      filename: `hostel-receipt-${allocation.roomNo}`,
+                      headers: ['Detail', 'Value'],
+                      data: [
+                        ['Hostel Name', allocation.hostelName],
+                        ['Block', allocation.blockName],
+                        ['Room No.', allocation.roomNo],
+                        ['Bed Label', allocation.bedLabel],
+                        ['Status', allocation.status.toUpperCase()],
+                        ['Valid From', new Date(allocation.allocated_from).toLocaleDateString()]
+                      ]
+                    });
+                  }}
+                >
+                  Download Receipt
+                </Button>
               </div>
             </Card>
 

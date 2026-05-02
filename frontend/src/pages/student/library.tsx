@@ -6,32 +6,47 @@ import { Book, Search, Clock, AlertCircle, History } from 'lucide-react';
 import Head from 'next/head';
 import { Input } from '@/components/ui/Input';
 import { ColumnDef } from '@tanstack/react-table';
+import { QRCodeCanvas } from 'qrcode.react';
+import { exportToPDF } from '@/lib/pdfExport';
 
-interface BookIssue {
-  id: string;
-  title: string;
-  author: string;
-  issueDate: string;
-  dueDate: string;
-  status: 'Issued' | 'Overdue';
-}
+import { useStudentLibrary } from '@/hooks/useStudent';
+import { Loading } from '@/components/feedback/Loading';
+import { toast } from 'sonner';
+import { apiFetch } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 
-const MOCK_ISSUES: BookIssue[] = [
-  { id: '1', title: 'Introduction to Algorithms', author: 'Cormen, Leiserson, Rivest', issueDate: '2024-04-10', dueDate: '2024-05-10', status: 'Issued' },
-  { id: '2', title: 'Clean Code', author: 'Robert C. Martin', issueDate: '2024-03-15', dueDate: '2024-04-15', status: 'Overdue' },
-];
+import { ErrorState } from '@/components/feedback/ErrorState';
 
 export default function StudentLibraryPage() {
-  const columns: ColumnDef<BookIssue>[] = [
+  const { data: issues, isLoading, isError, refetch } = useStudentLibrary();
+  const queryClient = useQueryClient();
+
+  if (isError) return <ShellLayout role="student"><ErrorState onRetry={refetch} /></ShellLayout>;
+
+  const handleReturn = async (id: string) => {
+    try {
+      await apiFetch.patch(`/api/v1/library/return/${id}`);
+      toast.success('Book returned successfully');
+      queryClient.invalidateQueries({ queryKey: ['student', 'library'] });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to return book');
+    }
+  };
+
+  const columns: ColumnDef<any>[] = [
     { accessorKey: 'title', header: 'Book Title' },
     { accessorKey: 'author', header: 'Author' },
-    { accessorKey: 'dueDate', header: 'Due Date' },
+    { 
+      accessorKey: 'dueDate', 
+      header: 'Due Date',
+      cell: ({ row }) => new Date(row.original.dueDate).toLocaleDateString()
+    },
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: ({ row }: { row: any }) => (
+      cell: ({ row }) => (
         <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-          row.original.status === 'Issued' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+          row.original.status === 'issued' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
         }`}>
           {row.original.status}
         </span>
@@ -40,11 +55,27 @@ export default function StudentLibraryPage() {
     {
       id: 'actions',
       header: '',
-      cell: () => <Button variant="ghost" size="sm">Renew</Button>
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          {row.original.qr_code_id && (
+            <div className="tooltip" title="Scan to verify">
+              <QRCodeCanvas value={row.original.qr_code_id} size={30} level="L" />
+            </div>
+          )}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => handleReturn(row.original.id)}
+            disabled={row.original.status === 'returned'}
+          >
+            {row.original.status === 'returned' ? 'Returned' : 'Return'}
+          </Button>
+        </div>
+      )
     }
   ];
 
-  const mobileCard = (book: BookIssue) => (
+  const mobileCard = (book: any) => (
     <Card className="p-4">
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -52,7 +83,7 @@ export default function StudentLibraryPage() {
           <p className="text-xs text-gray-400">{book.author}</p>
         </div>
         <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${
-          book.status === 'Issued' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+          book.status === 'issued' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
         }`}>
           {book.status}
         </span>
@@ -60,9 +91,16 @@ export default function StudentLibraryPage() {
       <div className="flex justify-between items-center pt-4 border-t border-gray-50">
         <div className="flex flex-col">
           <span className="text-[10px] text-gray-400 uppercase">Due Date</span>
-          <span className="text-sm font-bold text-gray-700">{book.dueDate}</span>
+          <span className="text-sm font-bold text-gray-700">{new Date(book.dueDate).toLocaleDateString()}</span>
         </div>
-        <Button variant="secondary" size="sm">Renew</Button>
+        <Button 
+          variant="secondary" 
+          size="sm" 
+          onClick={() => handleReturn(book.id)}
+          disabled={book.status === 'returned'}
+        >
+          {book.status === 'returned' ? 'Returned' : 'Return'}
+        </Button>
       </div>
     </Card>
   );
@@ -88,14 +126,18 @@ export default function StudentLibraryPage() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           <Card title="Books Issued" subtitle="Current term" icon={Book} className="lg:col-span-1">
             <div className="mt-2">
-              <span className="text-4xl font-black text-gray-900">2</span>
+              <span className="text-4xl font-black text-gray-900">
+                {issues?.filter((i: any) => i.status === 'issued').length || 0}
+              </span>
               <span className="ml-2 text-sm text-gray-500">/ 5 Limit</span>
             </div>
           </Card>
-          <Card title="Pending Fines" subtitle="Overdue books" icon={AlertCircle} className="lg:col-span-1">
+          <Card title="Overdue Books" subtitle="Pending returns" icon={AlertCircle} className="lg:col-span-1">
             <div className="mt-2">
-              <span className="text-4xl font-black text-red-600">$5.50</span>
-              <span className="ml-2 text-sm text-red-500">Urgent</span>
+              <span className="text-4xl font-black text-red-600">
+                {issues?.filter((i: any) => i.status === 'overdue').length || 0}
+              </span>
+              <span className="ml-2 text-sm text-red-500">{issues?.some((i: any) => i.status === 'overdue') ? 'Urgent' : 'Clear'}</span>
             </div>
           </Card>
           <Card title="Total Visits" subtitle="This month" icon={History} className="lg:col-span-1">
@@ -109,12 +151,37 @@ export default function StudentLibraryPage() {
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-xl font-bold text-gray-900">Current Issues</h2>
-          <DataTable
-            data={MOCK_ISSUES}
-            columns={columns}
-            mobileCard={mobileCard}
-          />
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Current Issues</h2>
+            <Button 
+              variant="outline"
+              disabled={!issues || issues.length === 0}
+              onClick={() => {
+                exportToPDF({
+                  title: 'Library Issues Report',
+                  filename: 'library-issues',
+                  headers: ['Book Title', 'Author', 'Barcode', 'Due Date'],
+                  data: issues.map((i: any) => [
+                    i.title,
+                    i.author,
+                    i.barcode,
+                    new Date(i.due_at || i.dueDate).toLocaleDateString()
+                  ])
+                });
+              }}
+            >
+              Export to PDF
+            </Button>
+          </div>
+          {isLoading ? (
+            <Loading />
+          ) : (
+            <DataTable
+              data={issues || []}
+              columns={columns}
+              mobileCard={mobileCard}
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

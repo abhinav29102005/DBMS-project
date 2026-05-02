@@ -13,6 +13,7 @@ import { hostelRouter } from './modules/hostel/presentation/hostel-router';
 import { libraryRouter } from './modules/library/presentation/library-router';
 import { examRouter } from './modules/exam/presentation/exam-router';
 import { reportingRouter } from './modules/reporting/reporting-router';
+import { profileRouter } from './modules/auth/presentation/profile-router';
 import type { AuthenticatedRequest } from './core/types/context';
 
 const router = AutoRouter<AuthenticatedRequest, [Env]>();
@@ -46,6 +47,7 @@ router.all('/api/v1/hostel/*', hostelRouter.fetch);
 router.all('/api/v1/library/*', libraryRouter.fetch);
 router.all('/api/v1/exam/*', examRouter.fetch);
 router.all('/api/v1/reporting/*', reportingRouter.fetch);
+router.all('/api/v1/profile/*', profileRouter.fetch);
 
 router.all('*', () =>
   Response.json(

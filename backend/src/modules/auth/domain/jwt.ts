@@ -4,6 +4,7 @@ import * as jose from 'jose';
 
 export interface JwtPayload extends jose.JWTPayload {
   sub: string;
+  email: string;
   role: string;
   scopeId?: string;
 }

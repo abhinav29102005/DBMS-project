@@ -37,11 +37,19 @@ export async function requireAuth(
 
     const ctx: RequestContext = {
       userId: payload.sub,
+      email: payload.email || '',
       role: payload.role,
       permissions: permissions || [],
       correlationId: request.headers.get('X-Correlation-ID') || crypto.randomUUID(),
       scopeId: payload.scopeId
     };
+
+    if (!ctx.email) {
+       const sql = createDbClient(env);
+       const userRepo = new UserRepository(sql);
+       const details = await userRepo.getUserAuthDetails(payload.sub);
+       ctx.email = details.email;
+    }
 
     request.ctx = ctx;
 

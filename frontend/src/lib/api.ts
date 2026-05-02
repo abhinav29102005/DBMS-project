@@ -26,7 +26,16 @@ function getStoredToken(): string | null {
   return match ? match[1] : null;
 }
 
-export async function apiFetch<T = any>(path: string, options: ApiOptions = {}): Promise<T> {
+export interface ApiFetch {
+  <T = any>(path: string, options?: ApiOptions): Promise<T>;
+  get: <T = any>(path: string, options?: ApiOptions) => Promise<T>;
+  post: <T = any>(path: string, data?: any, options?: ApiOptions) => Promise<T>;
+  put: <T = any>(path: string, data?: any, options?: ApiOptions) => Promise<T>;
+  patch: <T = any>(path: string, data?: any, options?: ApiOptions) => Promise<T>;
+  delete: <T = any>(path: string, options?: ApiOptions) => Promise<T>;
+}
+
+const apiFetchBase = async <T = any>(path: string, options: ApiOptions = {}): Promise<T> => {
   const { token, ...rest } = options;
 
   if (!BASE) {
@@ -55,4 +64,21 @@ export async function apiFetch<T = any>(path: string, options: ApiOptions = {}):
   }
 
   return res.json() as Promise<T>;
-}
+};
+
+export const apiFetch = apiFetchBase as ApiFetch;
+
+apiFetch.get = <T = any>(path: string, options?: ApiOptions) => 
+  apiFetch<T>(path, { ...options, method: 'GET' });
+
+apiFetch.post = <T = any>(path: string, data?: any, options?: ApiOptions) => 
+  apiFetch<T>(path, { ...options, method: 'POST', body: data ? JSON.stringify(data) : undefined });
+
+apiFetch.put = <T = any>(path: string, data?: any, options?: ApiOptions) => 
+  apiFetch<T>(path, { ...options, method: 'PUT', body: data ? JSON.stringify(data) : undefined });
+
+apiFetch.patch = <T = any>(path: string, data?: any, options?: ApiOptions) => 
+  apiFetch<T>(path, { ...options, method: 'PATCH', body: data ? JSON.stringify(data) : undefined });
+
+apiFetch.delete = <T = any>(path: string, options?: ApiOptions) => 
+  apiFetch<T>(path, { ...options, method: 'DELETE' });

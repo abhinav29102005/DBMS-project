@@ -49,7 +49,7 @@ export class LoginUseCase {
     const authDetails = await this.userRepo.getUserAuthDetails(user.id);
 
     const accessToken = await signAccessToken(
-      { sub: user.id, role: authDetails.role, scopeId: authDetails.scopeId },
+      { sub: user.id, email: user.email, role: authDetails.role, scopeId: authDetails.scopeId },
       this.env.JWT_ACCESS_SECRET,
       parseInt(this.env.ACCESS_TOKEN_TTL_MINUTES)
     );
