@@ -25,31 +25,7 @@ export default function LoginPage() {
             <LoginForm />
 
             <div className="mt-8 pt-6 border-t border-gray-100">
-              <div className="flex flex-col items-center gap-4">
-                <p className="text-sm text-gray-500 font-medium">Quick Access</p>
-                <div className="flex items-center gap-4">
-                  <Link href="/auth/login" className="flex flex-col items-center gap-1 group">
-                    <div className="h-10 w-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
-                      <span className="text-xs font-bold">F</span>
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Faculty</span>
-                  </Link>
-                  <Link href="/auth/login" className="flex flex-col items-center gap-1 group">
-                    <div className="h-10 w-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all">
-                      <span className="text-xs font-bold">A</span>
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Admin</span>
-                  </Link>
-                  <Link href="/auth/login" className="flex flex-col items-center gap-1 group">
-                    <div className="h-10 w-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all">
-                      <span className="text-xs font-bold">S</span>
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Staff</span>
-                  </Link>
-                </div>
-              </div>
-
-              <div className="mt-8 text-center">
+              <div className="text-center">
                 <p className="text-sm text-gray-600">
                   Don't have an account?{' '}
                   <Link href="/auth/register" className="text-brand-600 font-bold hover:underline">
