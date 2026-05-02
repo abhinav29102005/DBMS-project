@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { BrevoEmailService } from '../../../infrastructure/events/email';
 import type { Env } from '../../../core/types/env';
 import type { AuthenticatedRequest } from '../../../core/types/context';
+import { QRService } from '../../../infrastructure/utils/qr-service';
 
 const libraryRouter = AutoRouter<AuthenticatedRequest, [Env]>({ base: '/api/v1/library' });
 
@@ -45,7 +46,13 @@ libraryRouter.get('/my-issues', requireAuth, async (request, env) => {
     WHERE i.member_user_id = ${request.ctx!.userId} AND i.returned_at IS NULL
     ORDER BY i.due_at ASC
   `;
-  return Response.json(rows);
+
+  const issuesWithQR = rows.map(row => ({
+    ...row,
+    qrCodeUrl: row.qr_code_id ? QRService.getBookQR(row.qr_code_id) : null
+  }));
+
+  return Response.json(issuesWithQR);
 });
 
 const issueSchema = z.object({

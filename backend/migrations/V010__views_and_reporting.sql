@@ -1,0 +1,19 @@
+CREATE TABLE "reporting"."mv_refresh_log" (
+	"mv_name" text PRIMARY KEY,
+	"last_refresh" timestamp with time zone,
+	"is_stale" boolean DEFAULT false NOT NULL
+);
+
+CREATE VIEW "reporting"."mv_hostel_occupancy_stats" AS (SELECT h.id AS hostel_id, h.name AS hostel_name, count(b.id) AS total_beds, count(a.id) FILTER (WHERE a.status = 'active'::text) AS occupied_beds, count(b.id) - count(a.id) FILTER (WHERE a.status = 'active'::text) AS vacant_beds, round(count(a.id) FILTER (WHERE a.status = 'active'::text)::numeric / NULLIF(count(b.id), 0)::numeric * 100::numeric, 2) AS occupancy_rate, now() AS last_computed_at FROM hostel.hostels h LEFT JOIN hostel.blocks bl ON bl.hostel_id = h.id LEFT JOIN hostel.rooms r ON r.block_id = bl.id LEFT JOIN hostel.beds b ON b.room_id = r.id LEFT JOIN hostel.allocations a ON a.bed_id = b.id AND a.status = 'active'::text GROUP BY h.id, h.name);
+
+CREATE VIEW "reporting"."mv_library_usage_analytics" AS (SELECT b.id AS book_id, b.title, count(i.id) AS total_issues, count(DISTINCT i.member_user_id) AS unique_borrowers, avg( CASE WHEN i.returned_at IS NOT NULL THEN i.returned_at::date - i.issued_at::date ELSE NULL::integer END) AS avg_borrow_duration_days, now() AS last_computed_at FROM library.books b LEFT JOIN library.book_copies bc ON bc.book_id = b.id LEFT JOIN library.issues i ON i.copy_id = bc.id GROUP BY b.id, b.title);
+
+CREATE VIEW "reporting"."mv_student_gpa_summary" AS (SELECT s.id AS student_id, s.student_no, s.department_id, NULL AS cumulative_gpa, COALESCE(sum(c.credits) FILTER (WHERE fr.result_status = 'pass'::text), 0::bigint) AS total_credits_earned, now() AS last_computed_at FROM academic.students s LEFT JOIN exam.final_results fr ON fr.student_id = s.id LEFT JOIN academic.course_offerings co ON co.id = fr.course_offering_id LEFT JOIN academic.courses c ON c.id = co.course_id WHERE s.deleted_at IS NULL GROUP BY s.id, s.student_no, s.department_id);
+
+CREATE VIEW "academic"."v_student_profile" AS (SELECT s.id AS student_id, u.id AS user_id, s.student_no, u.first_name, u.last_name, u.email, d.name AS department_name, p.name AS program_name, p.degree_type, s.admission_year, s.current_semester, s.lifecycle_state FROM academic.students s JOIN auth.users u ON u.id = s.user_id JOIN academic.departments d ON d.id = s.department_id JOIN academic.programs p ON p.id = s.program_id WHERE s.deleted_at IS NULL);
+
+CREATE VIEW "exam"."v_student_results" AS (SELECT fr.student_id, s.student_no, c.course_code, c.title AS course_title, sem.name AS semester_name, fr.total_marks, fr.grade_code, fr.grade_points, fr.result_status, fr.published_at FROM exam.final_results fr JOIN academic.students s ON s.id = fr.student_id JOIN academic.course_offerings co ON co.id = fr.course_offering_id JOIN academic.courses c ON c.id = co.course_id JOIN academic.semesters sem ON sem.id = co.semester_id);
+
+CREATE VIEW "hostel"."v_room_occupancy" AS (SELECT r.id AS room_id, h.name AS hostel_name, b.name AS block_name, r.room_no, r.floor_no, r.capacity, count(bd.id) AS total_beds, count(bd.id) FILTER (WHERE bd.status = 'occupied'::text) AS occupied_beds, r.capacity - count(bd.id) FILTER (WHERE bd.status = 'occupied'::text) AS vacant_beds FROM hostel.rooms r JOIN hostel.blocks b ON b.id = r.block_id JOIN hostel.hostels h ON h.id = b.hostel_id LEFT JOIN hostel.beds bd ON bd.room_id = r.id GROUP BY r.id, h.name, b.name, r.room_no, r.floor_no, r.capacity);
+
+CREATE VIEW "library"."v_book_availability" AS (SELECT b.id AS book_id, b.isbn, b.title, pub.name AS publisher_name, count(bc.id) AS total_copies, count(bc.id) FILTER (WHERE bc.status = 'available'::text) AS available_copies FROM library.books b LEFT JOIN library.publishers pub ON pub.id = b.publisher_id LEFT JOIN library.book_copies bc ON bc.book_id = b.id WHERE b.deleted_at IS NULL GROUP BY b.id, b.isbn, b.title, pub.name);

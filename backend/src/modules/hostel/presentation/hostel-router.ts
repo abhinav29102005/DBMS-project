@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { BrevoEmailService } from '../../../infrastructure/events/email';
 import type { Env } from '../../../core/types/env';
 import type { AuthenticatedRequest } from '../../../core/types/context';
+import { QRService } from '../../../infrastructure/utils/qr-service';
 
 const hostelRouter = AutoRouter<AuthenticatedRequest, [Env]>({ base: '/api/v1/hostel' });
 
@@ -43,6 +44,11 @@ hostelRouter.get('/my-allocation', requireAuth, requireRole(['student']), async 
     JOIN academic.students s ON a.student_id = s.id
     WHERE s.user_id = ${request.ctx!.userId} AND a.status = 'active'
   `;
+
+  if (rows.length > 0 && rows[0].qr_code_id) {
+    rows[0].qrCodeUrl = QRService.getRoomQR(rows[0].qr_code_id);
+  }
+
   return Response.json(rows[0] || null);
 });
 

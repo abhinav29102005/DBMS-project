@@ -35,6 +35,7 @@ async function main() {
     DROP SCHEMA IF EXISTS exam CASCADE;
     DROP SCHEMA IF EXISTS audit CASCADE;
     DROP SCHEMA IF EXISTS admin CASCADE;
+    DROP SCHEMA IF EXISTS core CASCADE;
     DROP SCHEMA IF EXISTS reporting CASCADE;
     DROP TABLE IF EXISTS public._migrations;
   `);
