@@ -1,5 +1,3 @@
-
-
 import { AutoRouter, type IRequest } from 'itty-router';
 import { createDbClient } from '../../../infrastructure/database/connection';
 import { AcademicRepository } from '../infrastructure/academic-repository';
@@ -46,6 +44,40 @@ academicRouter.get('/students/me/courses', requireAuth, requireRole(['student'])
   return Response.json(await repo.getStudentCourses(student.id));
 });
 
+academicRouter.get('/offerings/available', requireAuth, requireRole(['student']), async (request, env) => {
+  const sql = createDbClient(env);
+  const rows = await sql`
+    SELECT co.*, c.course_code, c.title, c.credits, f.employee_no as faculty_no, u.first_name || ' ' || u.last_name as faculty_name
+    FROM academic.course_offerings co
+    JOIN academic.courses c ON co.course_id = c.id
+    LEFT JOIN academic.faculty f ON co.primary_faculty_id = f.id
+    LEFT JOIN auth.users u ON f.user_id = u.id
+    WHERE co.status = 'active'
+      AND co.id NOT IN (
+        SELECT course_offering_id 
+        FROM academic.enrollments 
+        WHERE student_id = (SELECT id FROM academic.students WHERE user_id = ${request.ctx!.userId})
+          AND enrollment_status = 'enrolled'
+      )
+  `;
+  return Response.json(rows);
+});
+
+academicRouter.post('/enroll', requireAuth, requireRole(['student']), async (request, env) => {
+  const { offeringId } = await request.json();
+  const sql = createDbClient(env);
+  const repo = new AcademicRepository(sql);
+  const student = await repo.getStudentByUserId(request.ctx!.userId);
+  if (!student) throw new NotFoundError('Student profile');
+
+  await sql`
+    INSERT INTO academic.enrollments (student_id, course_offering_id, enrollment_status)
+    VALUES (${student.id}, ${offeringId}, 'enrolled')
+    ON CONFLICT (student_id, course_offering_id) DO UPDATE SET enrollment_status = 'enrolled'
+  `;
+  return Response.json({ success: true });
+});
+
 academicRouter.get('/students/me/results', requireAuth, requireRole(['student']), async (request, env) => {
   const sql = createDbClient(env);
   const repo = new AcademicRepository(sql);
@@ -57,23 +89,25 @@ academicRouter.get('/students/me/results', requireAuth, requireRole(['student'])
 academicRouter.get('/students/me/stats', requireAuth, requireRole(['student']), async (request, env) => {
   const sql = createDbClient(env);
   const repo = new AcademicRepository(sql);
+  const stats = await repo.getStudentStats(request.ctx!.userId);
+  if (!stats) throw new NotFoundError('Student profile');
+  return Response.json(stats);
+});
+
+academicRouter.get('/students/me/schedule', requireAuth, requireRole(['student']), async (request, env) => {
+  const sql = createDbClient(env);
+  const repo = new AcademicRepository(sql);
   const student = await repo.getStudentByUserId(request.ctx!.userId);
-  if (!student) throw new NotFoundError('Student profile', request.ctx!.userId);
+  if (!student) throw new NotFoundError('Student profile');
+  return Response.json(await repo.getStudentSchedule(student.id));
+});
 
-  const [courses, results] = await Promise.all([
-    sql`SELECT COUNT(*) as count FROM academic.enrollments WHERE student_id = ${student.id}`,
-    sql`SELECT grade_code as grade FROM exam.final_results WHERE student_id = ${student.id} AND result_status = 'pass'`
-  ]);
-
-  // Mocking GPA for now based on results
-  const gpa = results.length > 0 ? (4.0 - (results.length * 0.1)).toFixed(2) : '0.00';
-
-  return Response.json({
-    attendance: '85%',
-    gpa,
-    coursesCount: parseInt(courses[0].count),
-    fines: '$0.00'
-  });
+academicRouter.get('/students/me/attendance', requireAuth, requireRole(['student']), async (request, env) => {
+  const sql = createDbClient(env);
+  const repo = new AcademicRepository(sql);
+  const student = await repo.getStudentByUserId(request.ctx!.userId);
+  if (!student) throw new NotFoundError('Student profile');
+  return Response.json(await repo.getStudentAttendance(student.id));
 });
 
 academicRouter.get('/faculty/me/offerings', requireAuth, requireRole(['faculty']), async (request, env) => {

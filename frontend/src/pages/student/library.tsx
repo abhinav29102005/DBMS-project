@@ -114,12 +114,12 @@ export default function StudentLibraryPage() {
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">University Library</h1>
-            <p className="text-sm text-gray-500">Search books and manage your issues.</p>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">University Library</h1>
+            <p className="text-sm text-gray-500 mt-1">Search catalog and manage your active issues.</p>
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-            <Input placeholder="Search catalog..." className="pl-9 py-2 text-sm min-w-[280px]" />
+            <Input placeholder="Search catalog..." className="pl-9 py-2.5 text-sm min-w-[320px]" />
           </div>
         </div>
 

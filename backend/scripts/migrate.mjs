@@ -16,32 +16,50 @@ import pg from 'pg';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MIGRATIONS_DIR = join(__dirname, '..', 'migrations');
 
-// Read DATABASE_URL from .dev.vars or environment
 async function getDatabaseUrl() {
-  // Try environment first
-  if (process.env.DATABASE_DIRECT_URL) return process.env.DATABASE_DIRECT_URL;
+  // Check env vars first
   if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+  if (process.env.DATABASE_DIRECT_URL) return process.env.DATABASE_DIRECT_URL;
 
-  // Fall back to .dev.vars
   try {
     const devVars = await readFile(join(__dirname, '..', '.dev.vars'), 'utf-8');
+    const vars = {};
     for (const line of devVars.split('\n')) {
       const trimmed = line.trim();
-      if (trimmed.startsWith('DATABASE_URL=') && !trimmed.startsWith('#')) {
-        return trimmed.split('=').slice(1).join('=');
+      if (trimmed && !trimmed.startsWith('#')) {
+        const [key, ...rest] = trimmed.split('=');
+        vars[key] = rest.join('=').replace(/^["']|["']$/g, '');
       }
     }
+    // Prioritize DATABASE_URL (pooled) since it's confirmed working
+    return vars.DATABASE_URL || vars.DATABASE_DIRECT_URL;
   } catch {}
   throw new Error('No DATABASE_URL found in environment or .dev.vars');
 }
 
 async function main() {
   const url = await getDatabaseUrl();
-  console.log('🔌 Connecting to Neon...');
+  const maskedUrl = url.replace(/:\/\/([^:]+):([^@]+)@/, '://$1:****@');
+  console.log(`🔌 Connecting to: ${maskedUrl}`);
   
-  const client = new pg.Client({ connectionString: url, ssl: { rejectUnauthorized: false } });
-  await client.connect();
-  console.log('✅ Connected\n');
+  const client = new pg.Client({ 
+    connectionString: url, 
+    ssl: { rejectUnauthorized: false } 
+  });
+
+  try {
+    await client.connect();
+    console.log('✅ Connected\n');
+  } catch (err) {
+    console.error('\n❌ Connection Failed!');
+    if (err.code === '28P01') {
+      console.error('👉 Error: Password authentication failed.');
+      console.error('👉 Tip: Check if the password in your .dev.vars is complete and correct.');
+    } else {
+      console.error(`👉 Error: ${err.message}`);
+    }
+    process.exit(1);
+  }
 
   // Create migration tracking table
   await client.query(`
@@ -67,12 +85,12 @@ async function main() {
       continue;
     }
 
-    const sql = await readFile(join(MIGRATIONS_DIR, file), 'utf-8');
+    const migrationSql = await readFile(join(MIGRATIONS_DIR, file), 'utf-8');
     console.log(`▶️  Running ${file}...`);
 
     try {
       await client.query('BEGIN');
-      await client.query(sql);
+      await client.query(migrationSql);
       await client.query('INSERT INTO public._migrations (name) VALUES ($1)', [file]);
       await client.query('COMMIT');
       console.log(`✅ ${file} applied`);

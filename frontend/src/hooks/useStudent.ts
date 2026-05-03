@@ -43,3 +43,24 @@ export function useStudentSchedule() {
     queryFn: studentService.getSchedule,
   });
 }
+
+export function useAvailableOfferings() {
+  return useQuery({
+    queryKey: ['student', 'offerings', 'available'],
+    queryFn: studentService.getAvailableOfferings,
+  });
+}
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+export function useEnrollCourse() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: studentService.enrollInCourse,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['student', 'enrollments'] });
+      queryClient.invalidateQueries({ queryKey: ['student', 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['student', 'offerings', 'available'] });
+    },
+  });
+}

@@ -86,6 +86,57 @@ export class AcademicRepository {
     return rows[0] || null;
   }
 
+  async getStudentStats(userId: string): Promise<any> {
+    const student = await this.getStudentByUserId(userId);
+    if (!student) return null;
+
+    const [enrollments, attendance, results, library] = await Promise.all([
+      this.sql`SELECT COUNT(*) as count FROM academic.enrollments WHERE student_id = ${student.id} AND enrollment_status = 'enrolled'`,
+      this.sql`
+        SELECT 
+          COUNT(*) FILTER (WHERE status IN ('present', 'late'))::float / NULLIF(COUNT(*), 0) * 100 as percentage
+        FROM academic.attendance 
+        WHERE student_id = ${student.id}
+      `,
+      this.sql`SELECT grade_points FROM exam.final_results WHERE student_id = ${student.id} AND result_status = 'pass'`,
+      this.sql`SELECT COALESCE(SUM(amount), 0) as total FROM library.fines WHERE member_user_id = ${userId} AND status = 'unpaid'`
+    ]);
+
+    const gpa = results.length > 0 
+      ? (results.reduce((acc: number, r: any) => acc + parseFloat(r.grade_points), 0) / results.length).toFixed(2) 
+      : '0.00';
+
+    return {
+      attendance: attendance[0]?.percentage ? `${Math.round(attendance[0].percentage)}%` : '0%',
+      gpa,
+      coursesCount: parseInt(enrollments[0].count),
+      fines: `$${parseFloat(library[0].total).toFixed(2)}`
+    };
+  }
+
+  async getStudentSchedule(studentId: string): Promise<any[]> {
+    return this.sql`
+      SELECT s.*, c.title as subject, co.section_code
+      FROM academic.schedules s
+      JOIN academic.course_offerings co ON s.course_offering_id = co.id
+      JOIN academic.courses c ON co.course_id = c.id
+      JOIN academic.enrollments e ON e.course_offering_id = co.id
+      WHERE e.student_id = ${studentId} AND e.enrollment_status = 'enrolled'
+      ORDER BY s.day_of_week, s.start_time
+    `;
+  }
+
+  async getStudentAttendance(studentId: string): Promise<any[]> {
+    return this.sql`
+      SELECT a.*, c.title as course_title, c.course_code
+      FROM academic.attendance a
+      JOIN academic.course_offerings co ON a.course_offering_id = co.id
+      JOIN academic.courses c ON co.course_id = c.id
+      WHERE a.student_id = ${studentId}
+      ORDER BY a.date DESC
+    `;
+  }
+
   async getFacultyByUserId(userId: string): Promise<any | null> {
     const rows = await this.sql`SELECT * FROM academic.faculty WHERE user_id = ${userId} AND deleted_at IS NULL`;
     return rows[0] || null;

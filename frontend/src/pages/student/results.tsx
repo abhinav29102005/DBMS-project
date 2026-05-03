@@ -88,24 +88,54 @@ export default function ResultsPage() {
     </Card>
   );
 
+  const handleExport = () => {
+    // Basic CSV export logic
+    const headers = columns.map(c => (c as any).header).join(',');
+    const rows = (results || []).map(r => [
+      r.courseCode,
+      r.title,
+      r.credits,
+      r.marksInternal || 0,
+      r.marksExternal || 0,
+      r.grade || '-',
+      r.status || '-'
+    ].join(',')).join('\n');
+    
+    const blob = new Blob([`${headers}\n${rows}`], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `results_${selectedSemesterId}.csv`;
+    a.click();
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <ShellLayout role="student">
       <Head>
         <title>Examination Results | Student Portal</title>
       </Head>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Academic Results</h1>
-            <p className="text-sm text-gray-500">View and download your semester-wise performance.</p>
+            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Academic Results</h1>
+            <p className="text-sm text-gray-500 mt-1">Detailed performance analysis and grade tracking.</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
-              <Download size={16} />
-              Export PDF
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleExport}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-brand-200 transition-all active:scale-95"
+            >
+              <Download size={18} /> Export CSV
             </button>
-            <button className="inline-flex items-center gap-2 px-4 py-2 bg-brand-600 rounded-xl text-sm font-semibold text-white hover:bg-brand-700 shadow-lg shadow-brand-500/20 transition-all active:scale-95">
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 rounded-2xl text-sm font-bold text-white hover:bg-brand-700 shadow-xl shadow-brand-500/20 transition-all active:scale-95"
+            >
               Print Marksheet
             </button>
           </div>

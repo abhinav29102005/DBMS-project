@@ -75,12 +75,12 @@ export function DesktopSidebar({ role }: { role: Role }) {
   const navItems = NAV_MAP[role] || [];
 
   return (
-    <aside className={`relative flex flex-col bg-white border-r border-gray-200 min-h-screen transition-all duration-300 ease-in-out ${collapsed ? 'w-20' : 'w-64'}`}>
-      <div className="flex items-center px-5 h-16 border-b border-gray-100 overflow-hidden">
+    <aside className={`relative flex flex-col bg-white border-r border-gray-100 min-h-screen transition-all duration-500 ease-in-out ${collapsed ? 'w-24' : 'w-72'}`}>
+      <div className="flex items-center px-8 h-20 border-b border-gray-50 overflow-hidden">
         <Logo iconOnly={collapsed} />
       </div>
 
-      <nav className="flex-1 py-6 space-y-1 px-3">
+      <nav className="flex-1 py-8 space-y-2 px-4">
         {navItems.map(({ href, icon: Icon, label }) => {
           const active = pathname.startsWith(href);
           return (
@@ -88,32 +88,39 @@ export function DesktopSidebar({ role }: { role: Role }) {
               key={href}
               href={href}
               title={collapsed ? label : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-200 group
+              className={`flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-[14px] transition-all duration-300 group relative
                 ${active
-                  ? 'bg-brand-50 text-brand-700 font-semibold shadow-sm'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}
+                  ? 'bg-brand-50 text-brand-700 font-bold shadow-sm shadow-brand-500/5'
+                  : 'text-gray-500 hover:bg-gray-50/80 hover:text-gray-900 font-semibold'}`}
             >
-              <Icon size={20} strokeWidth={active ? 2.5 : 1.5} className={`flex-shrink-0 transition-colors ${active ? 'text-brand-600' : 'text-gray-400 group-hover:text-gray-600'}`} />
-              {!collapsed && <span className="truncate">{label}</span>}
+              {active && (
+                <motion.div
+                  layoutId="active-pill"
+                  className="absolute left-0 w-1.5 h-6 bg-brand-600 rounded-r-full"
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                />
+              )}
+              <Icon size={22} strokeWidth={active ? 2.5 : 2} className={`flex-shrink-0 transition-all duration-300 ${active ? 'text-brand-600 scale-110' : 'text-gray-400 group-hover:text-gray-700'}`} />
+              {!collapsed && <span className="truncate tracking-tight font-display">{label}</span>}
             </Link>
           );
         })}
       </nav>
 
-      <div className="p-3 border-t border-gray-100 space-y-1">
+      <div className="p-4 border-t border-gray-50 space-y-1.5">
         <Link
           href="/settings"
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors group"
+          className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-[14px] font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all group"
         >
-          <Settings size={20} strokeWidth={1.5} className="flex-shrink-0 text-gray-400 group-hover:text-gray-600" />
-          {!collapsed && <span>Settings</span>}
+          <Settings size={22} strokeWidth={2} className="flex-shrink-0 text-gray-400 group-hover:text-gray-700 transition-all" />
+          {!collapsed && <span className="font-display tracking-tight">Settings</span>}
         </Link>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-colors group"
+          className="w-full flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-[14px] font-bold text-red-500/80 hover:bg-red-50 hover:text-red-600 transition-all group"
         >
-          <LogOut size={20} strokeWidth={1.5} className="flex-shrink-0 text-red-400 group-hover:text-red-500" />
-          {!collapsed && <span>Logout</span>}
+          <LogOut size={22} strokeWidth={2} className="flex-shrink-0 text-red-400/70 group-hover:text-red-500 group-hover:rotate-12 transition-all duration-300" />
+          {!collapsed && <span className="font-display tracking-tight">Logout</span>}
         </button>
       </div>
 

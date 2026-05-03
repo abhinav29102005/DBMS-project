@@ -35,10 +35,10 @@ export function LoginForm() {
 
   const handleQuickLogin = (role: 'student' | 'faculty' | 'admin' | 'staff') => {
     const credentials = {
-      student: { email: 'sushain.sharma@student.gtu.edu', password: 'password123' },
+      student: { email: 'asingh3_be24@thapar.edu', password: 'password123' },
       faculty: { email: 'sushain.sharma@gtu.edu', password: 'password123' },
       admin: { email: 'admin@gtu.edu', password: 'password123' },
-      staff: { email: 'admin@gtu.edu', password: 'password123' }, // Defaulting staff to admin for now as per seed data
+      staff: { email: 'staff@gtu.edu', password: 'password123' },
     };
 
     setValue('email', credentials[role].email);

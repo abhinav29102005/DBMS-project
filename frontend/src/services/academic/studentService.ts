@@ -25,5 +25,16 @@ export const studentService = {
 
   getSchedule: async () => {
     return apiFetch('/api/v1/academic/students/me/schedule');
+  },
+
+  getAvailableOfferings: async () => {
+    return apiFetch('/api/v1/academic/offerings/available');
+  },
+
+  enrollInCourse: async (offeringId: string) => {
+    return apiFetch('/api/v1/academic/enroll', {
+      method: 'POST',
+      body: JSON.stringify({ offeringId })
+    });
   }
 };

@@ -16,7 +16,7 @@ export function TopBar({ role }: { role: string }) {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-white dark:bg-gray-900 dark:border-gray-800 px-4 transition-colors">
       <div className="flex items-center gap-2">
-        <h1 className="text-lg font-semibold capitalize text-gray-900 dark:text-gray-100">{title}</h1>
+        <h1 className="text-xl font-bold font-display capitalize text-gray-900 dark:text-gray-100 tracking-tight">{title}</h1>
       </div>
 
       <div className="flex items-center gap-3">

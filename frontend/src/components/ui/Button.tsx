@@ -13,18 +13,18 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', loading, children, disabled, ...props }, ref) => {
     const variants = {
-      primary: 'bg-brand-600 text-white hover:bg-brand-700 shadow-sm active:scale-[0.98]',
-      secondary: 'bg-brand-50 text-brand-700 hover:bg-brand-100 active:scale-[0.98]',
-      outline: 'border-2 border-gray-200 bg-transparent text-gray-700 hover:bg-gray-50 active:scale-[0.98]',
-      ghost: 'bg-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-      danger: 'bg-red-600 text-white hover:bg-red-700 shadow-sm active:scale-[0.98]',
+      primary: 'bg-brand-600 text-white hover:bg-brand-700 shadow-xl shadow-brand-500/20 active:scale-[0.97]',
+      secondary: 'bg-brand-50 text-brand-700 hover:bg-brand-100/80 active:scale-[0.97]',
+      outline: 'border-2 border-gray-100 bg-white text-gray-700 hover:border-brand-200 hover:text-brand-600 shadow-sm active:scale-[0.97]',
+      ghost: 'bg-transparent text-gray-500 hover:bg-gray-50 hover:text-brand-600',
+      danger: 'bg-red-500 text-white hover:bg-red-600 shadow-xl shadow-red-500/20 active:scale-[0.97]',
     };
 
     const sizes = {
-      sm: 'px-3 py-1.5 text-xs font-medium rounded-lg',
-      md: 'px-5 py-2.5 text-sm font-semibold rounded-xl',
-      lg: 'px-6 py-3.5 text-base font-semibold rounded-2xl',
-      xl: 'px-8 py-4.5 text-lg font-bold rounded-2xl',
+      sm: 'px-4 py-2 text-[11px] font-bold uppercase tracking-wider rounded-xl',
+      md: 'px-6 py-3 text-sm font-bold rounded-2xl',
+      lg: 'px-8 py-4 text-base font-bold rounded-[1.25rem]',
+      xl: 'px-10 py-5 text-lg font-bold rounded-[1.5rem]',
     };
 
     return (

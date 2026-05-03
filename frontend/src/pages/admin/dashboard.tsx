@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore, AuthState } from '@/store/authStore';
@@ -10,27 +11,19 @@ import {
   BookOpen,
   AlertCircle,
   BarChart3,
-  UserCheck
+  UserCheck,
+  Database
 } from 'lucide-react';
 import Head from 'next/head';
 import { Button } from '@/components/ui/Button';
 import { DashboardChart } from '@/components/ui/DashboardChart';
-
-const ENROLLMENT_DATA = [
-  { name: 'Jan', value: 30 },
-  { name: 'Feb', value: 45 },
-  { name: 'Mar', value: 35 },
-  { name: 'Apr', value: 60 },
-  { name: 'May', value: 55 },
-  { name: 'Jun', value: 80 },
-  { name: 'Jul', value: 75 },
-  { name: 'Aug', value: 90 },
-];
+import { DataEditor } from '@/components/admin/DataEditor';
 
 export default function AdminDashboard() {
   const user = useAuthStore((s: AuthState) => s.user);
   const { data: stats, isLoading, isError, refetch } = useAdminStats();
   const { data: trends, isLoading: trendsLoading } = useEnrollmentTrends();
+  const [activeTable, setActiveTable] = useState<{schema: string, table: string, title: string} | null>(null);
 
   if (isError) {
     return (
@@ -40,21 +33,28 @@ export default function AdminDashboard() {
     );
   }
 
+  const tables = [
+    { schema: 'auth', table: 'users', title: 'User Management' },
+    { schema: 'academic', table: 'courses', title: 'Course Catalog' },
+    { schema: 'academic', table: 'course_offerings', title: 'Course Offerings' },
+    { schema: 'academic', table: 'departments', title: 'Departments' },
+    { schema: 'exam', table: 'marks', title: 'Exam Marks' },
+  ];
+
   return (
     <ShellLayout role="admin">
       <Head>
         <title>Admin Dashboard | UIMS Portal</title>
       </Head>
 
-      <div className="space-y-8">
-        <section className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="space-y-8 pb-12">
+        <section className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-brand-900 p-8 rounded-3xl text-white shadow-xl">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight">System Overview</h1>
-            <p className="text-gray-500 font-medium">Welcome, System Administrator</p>
+            <h1 className="text-3xl font-bold tracking-tight">System Overview</h1>
+            <p className="text-brand-100 font-medium mt-1">Welcome back, System Administrator</p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold uppercase">System Online</span>
-            <span className="text-xs text-gray-400 font-medium">Last synced: Just now</span>
+            <span className="px-4 py-2 bg-green-500/20 text-green-300 border border-green-500/30 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-sm">System Online</span>
           </div>
         </section>
 
@@ -101,37 +101,64 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2" title="Enrollment Trends" icon={BarChart3}>
-            {trendsLoading ? <Skeleton className="h-[300px] w-full" /> : (
-              <DashboardChart
-                data={trends || []}
-                categoryKey="name"
-                dataKey="value"
-                colors={['#185FA5']}
-              />
+        <div className="pt-8 border-t border-gray-200">
+          <div className="flex items-center gap-3 mb-6">
+            <Database className="text-brand-600" />
+            <h2 className="text-2xl font-bold text-gray-900">DBMS Control Panel</h2>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-6">
+            {tables.map(t => (
+              <Button 
+                key={t.table} 
+                variant={activeTable?.table === t.table ? 'primary' : 'outline'}
+                onClick={() => setActiveTable(t)}
+              >
+                {t.title}
+              </Button>
+            ))}
+            {activeTable && (
+              <Button variant="outline" onClick={() => setActiveTable(null)} className="ml-auto text-gray-500 hover:text-red-600 border-dashed">
+                Close Editor
+              </Button>
             )}
-          </Card>
+          </div>
 
-          <Card title="Recent System Activity" icon={AlertCircle}>
-            <div className="space-y-4">
-              {isLoading ? [1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />) : (
-                (stats?.recentActivity?.length || 0) > 0 ? (
-                  stats?.recentActivity.map((log: any, i: number) => (
-                    <div key={i} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
-                      <h4 className="text-xs font-bold text-gray-900">{log.action}</h4>
-                      <p className="text-[10px] text-gray-500">{log.user} • {new Date(log.time).toLocaleTimeString()}</p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-8 text-center text-gray-400 text-xs italic">
-                    No recent activity logs found.
-                  </div>
-                )
-              )}
-              <Button variant="outline" className="w-full text-xs">View All Logs</Button>
+          {activeTable ? (
+            <DataEditor schema={activeTable.schema} table={activeTable.table} title={activeTable.title} />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 opacity-60 pointer-events-none filter grayscale">
+              <Card className="lg:col-span-2" title="Enrollment Trends" icon={BarChart3}>
+                {trendsLoading ? <Skeleton className="h-[300px] w-full" /> : (
+                  <DashboardChart
+                    data={trends || []}
+                    categoryKey="name"
+                    dataKey="value"
+                    colors={['#185FA5']}
+                  />
+                )}
+              </Card>
+
+              <Card title="Recent System Activity" icon={AlertCircle}>
+                <div className="space-y-4">
+                  {isLoading ? [1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />) : (
+                    (stats?.recentActivity?.length || 0) > 0 ? (
+                      stats?.recentActivity.map((log: any, i: number) => (
+                        <div key={i} className="p-3 rounded-xl bg-gray-50 border border-gray-100">
+                          <h4 className="text-xs font-bold text-gray-900">{log.action}</h4>
+                          <p className="text-[10px] text-gray-500">{log.user} • {new Date(log.time).toLocaleTimeString()}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-gray-400 text-xs italic">
+                        No recent activity logs found.
+                      </div>
+                    )
+                  )}
+                </div>
+              </Card>
             </div>
-          </Card>
+          )}
         </div>
       </div>
     </ShellLayout>
