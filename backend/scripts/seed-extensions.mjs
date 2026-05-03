@@ -41,18 +41,33 @@ async function seedExtensions() {
   
   // 3. Seed Attendance for ALL students (simulating 10 days of classes)
   console.log(`Generating attendance for ${students.length} students...`);
+  const attendanceValues = [];
   for (const student of students) {
     for (const off of offerings) {
-      // Create 10 days of attendance per student per offering
       for (let i = 0; i < 10; i++) {
         const status = Math.random() > 0.15 ? 'present' : 'absent';
-        await sql`
-          INSERT INTO academic.attendance (student_id, course_offering_id, date, status)
-          VALUES (${student.id}, ${off.id}, CURRENT_DATE - ${i}, ${status})
-          ON CONFLICT DO NOTHING
-        `;
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        attendanceValues.push({
+          sid: student.id,
+          oid: off.id,
+          date: date.toISOString().split('T')[0],
+          status
+        });
       }
     }
+  }
+  
+  // Bulk insert in chunks of 500
+  for (let i = 0; i < attendanceValues.length; i += 500) {
+    const chunk = attendanceValues.slice(i, i + 500);
+    const query = `
+      INSERT INTO academic.attendance (student_id, course_offering_id, date, status)
+      VALUES ${chunk.map((_, idx) => `($${idx * 4 + 1}, $${idx * 4 + 2}, $${idx * 4 + 3}, $${idx * 4 + 4})`).join(', ')}
+      ON CONFLICT DO NOTHING
+    `;
+    const params = chunk.flatMap(v => [v.sid, v.oid, v.date, v.status]);
+    await sql(query, params);
   }
 
   // 4. Seed Schedule
@@ -67,15 +82,20 @@ async function seedExtensions() {
 
   // 5. Seed Notifications for ALL students
   console.log(`Generating notifications for ${students.length} students...`);
+  const notificationValues = [];
   for (const student of students) {
-    await sql`
+    notificationValues.push([student.user_id, 'Welcome to UIMS', 'Your academic profile is now active.', 'success']);
+    notificationValues.push([student.user_id, 'Registration Open', 'Course registration starts tomorrow.', 'info']);
+  }
+  
+  for (let i = 0; i < notificationValues.length; i += 500) {
+    const chunk = notificationValues.slice(i, i + 500);
+    const query = `
       INSERT INTO core.notifications (user_id, title, message, type)
-      VALUES 
-        (${student.user_id}, 'Welcome to UIMS', 'Your academic profile is now active. Explore your dashboard.', 'success'),
-        (${student.user_id}, 'Registration Open', 'Course registration for the next semester starts tomorrow.', 'info'),
-        (${student.user_id}, 'Library Overdue', 'Please return "Introduction to Algorithms" by Friday.', 'warning')
+      VALUES ${chunk.map((_, idx) => `($${idx * 4 + 1}, $${idx * 4 + 2}, $${idx * 4 + 3}, $${idx * 4 + 4})`).join(', ')}
       ON CONFLICT DO NOTHING
     `;
+    await sql(query, chunk.flat());
   }
 
   console.log('Extensions seeded successfully!');

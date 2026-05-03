@@ -19,13 +19,15 @@ export function DataEditor({ schema, table, title }: DataEditorProps) {
   const [editFormData, setEditFormData] = useState<any>({});
   const [isAdding, setIsAdding] = useState(false);
   const [columns, setColumns] = useState<string[]>([]);
+  const [offset, setOffset] = useState(0);
+  const [limit] = useState(50);
 
   const fetchUrl = `/api/v1/core/admin/data/${schema}/${table}`;
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(process.env.NEXT_PUBLIC_API_URL + fetchUrl, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${fetchUrl}?limit=${limit}&offset=${offset}`, {
         headers: {
           'Authorization': `Bearer ${document.cookie.replace(/(?:(?:^|.*;\s*)access_token\s*\=\s*([^;]*).*$)|^.*$/, "$1")}`
         }
@@ -45,7 +47,7 @@ export function DataEditor({ schema, table, title }: DataEditorProps) {
 
   useEffect(() => {
     loadData();
-  }, [schema, table]);
+  }, [schema, table, offset]);
 
   const handleEditClick = (row: any) => {
     setEditingId(row.id);
@@ -114,10 +116,10 @@ export function DataEditor({ schema, table, title }: DataEditorProps) {
     }
   };
 
-  if (loading) return <Card className="p-8"><Loading /></Card>;
+  if (loading && data.length === 0) return <Card className="p-8"><Loading /></Card>;
 
   return (
-    <Card className="flex flex-col h-[600px] overflow-hidden">
+    <Card className="flex flex-col h-[650px] overflow-hidden">
       <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-brand-100 text-brand-600 rounded-lg">
@@ -128,9 +130,16 @@ export function DataEditor({ schema, table, title }: DataEditorProps) {
             <p className="text-xs font-medium text-gray-500 font-mono">{schema}.{table}</p>
           </div>
         </div>
-        <Button onClick={() => { setIsAdding(true); setEditFormData({}); }} size="sm">
-          <Plus size={16} className="mr-2" /> Add Record
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 mr-4">
+            <Button variant="outline" size="sm" onClick={() => setOffset(Math.max(0, offset - limit))} disabled={offset === 0}>Prev</Button>
+            <span className="text-xs font-bold px-3">Page {Math.floor(offset/limit) + 1}</span>
+            <Button variant="outline" size="sm" onClick={() => setOffset(offset + limit)} disabled={data.length < limit}>Next</Button>
+          </div>
+          <Button onClick={() => { setIsAdding(true); setEditFormData({}); }} size="sm">
+            <Plus size={16} className="mr-2" /> Add Record
+          </Button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-auto">

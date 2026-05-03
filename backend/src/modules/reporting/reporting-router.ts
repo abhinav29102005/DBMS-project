@@ -40,7 +40,7 @@ reportingRouter.get('/admin/stats', requireAuth, requireRole(['admin']), async (
   const [students, faculty, courses, logs] = await Promise.all([
     sql`SELECT COUNT(*) as count FROM academic.students`,
     sql`SELECT COUNT(*) as count FROM auth.user_roles ur JOIN auth.roles r ON ur.role_id = r.id WHERE r.code = 'faculty'`,
-    sql`SELECT COUNT(*) as count FROM academic.course_offerings WHERE status = 'active'`,
+    sql`SELECT COUNT(*) as count FROM academic.course_offerings WHERE status IN ('ongoing', 'scheduled')`,
     sql`
       SELECT 
         l.id, 
