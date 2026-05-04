@@ -1,17 +1,42 @@
+import { useState } from 'react';
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore, AuthState } from '@/store/authStore';
+import { useStaffStats } from '@/hooks/useStaff';
+import { Skeleton } from '@/components/ui/Skeleton';
+import { ErrorState } from '@/components/feedback/ErrorState';
+import { Button } from '@/components/ui/Button';
+import { DataEditor } from '@/components/admin/DataEditor';
 import {
   Users,
   Building2,
   Calendar,
   AlertCircle,
-  Briefcase
+  Briefcase,
+  Database
 } from 'lucide-react';
 import Head from 'next/head';
 
 export default function StaffDashboard() {
   const user = useAuthStore((s: AuthState) => s.user);
+  const { data: stats, isLoading, isError, refetch } = useStaffStats();
+  const [activeTable, setActiveTable] = useState<{schema: string, table: string, title: string} | null>(null);
+
+  if (isError) {
+    return (
+      <ShellLayout role="staff">
+        <ErrorState onRetry={refetch} />
+      </ShellLayout>
+    );
+  }
+
+  const tables = [
+    { schema: 'core', table: 'support_tickets', title: 'Support Tickets' },
+    { schema: 'core', table: 'campus_events', title: 'Campus Events' },
+    { schema: 'core', table: 'facility_requests', title: 'Facility Requests' },
+    { schema: 'hostel', table: 'allocations', title: 'Hostel Allocations' },
+    { schema: 'library', table: 'issues', title: 'Library Issues' },
+  ];
 
   return (
     <ShellLayout role="staff">
@@ -19,14 +44,14 @@ export default function StaffDashboard() {
         <title>Dashboard | Staff Portal</title>
       </Head>
 
-      <div className="space-y-8">
+      <div className="space-y-8 pb-12">
         <section className="relative overflow-hidden rounded-3xl bg-brand-600 p-8 text-white shadow-xl shadow-brand-500/20">
           <div className="relative z-10">
             <h1 className="text-3xl font-bold mb-2 tracking-tight">
               Hello, {user?.name || 'Staff Member'}! 👋
             </h1>
             <p className="text-brand-100 max-w-md">
-              Welcome to the administrative portal. You have 3 pending support requests.
+              {isLoading ? <Skeleton className="h-4 w-48 bg-brand-400" /> : `Welcome back! You have ${stats?.pendingTickets || 0} pending support tickets.`}
             </p>
           </div>
           <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -35,66 +60,109 @@ export default function StaffDashboard() {
         </section>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card title="Support Tickets" subtitle="Pending" icon={AlertCircle}>
+          <Card title="Support Tickets" subtitle="Pending" icon={AlertCircle} href="/staff/support">
             <div className="mt-2">
-              <span className="text-3xl font-bold text-gray-900">12</span>
-              <span className="ml-2 text-sm font-medium text-orange-600">Requires attention</span>
+              {isLoading ? <Skeleton className="h-10 w-20" /> : (
+                <>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.pendingTickets || 0}</span>
+                  <span className="ml-2 text-sm font-medium text-orange-600">Active</span>
+                </>
+              )}
             </div>
           </Card>
-          <Card title="Campus Events" subtitle="This Week" icon={Calendar}>
+          <Card title="Campus Events" subtitle="Next 7 Days" icon={Calendar} href="/staff/events">
             <div className="mt-2">
-              <span className="text-3xl font-bold text-gray-900">4</span>
-              <span className="ml-2 text-sm font-medium text-gray-500">Scheduled</span>
+              {isLoading ? <Skeleton className="h-10 w-20" /> : (
+                <>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.upcomingEvents || 0}</span>
+                  <span className="ml-2 text-sm font-medium text-gray-500">Scheduled</span>
+                </>
+              )}
             </div>
           </Card>
-          <Card title="Facility Requests" subtitle="Maintenance" icon={Building2}>
+          <Card title="Facility Requests" subtitle="Maintenance" icon={Building2} href="/staff/facilities">
             <div className="mt-2">
-              <span className="text-3xl font-bold text-gray-900">7</span>
-              <span className="ml-2 text-sm font-medium text-blue-600">Active</span>
+              {isLoading ? <Skeleton className="h-10 w-20" /> : (
+                <>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.pendingFacilities || 0}</span>
+                  <span className="ml-2 text-sm font-medium text-blue-600">Pending</span>
+                </>
+              )}
             </div>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-900">Recent Tickets</h2>
-            <div className="space-y-4">
-              {[
-                { title: 'Projector Issue in Lab 402', status: 'Pending', type: 'IT Support' },
-                { title: 'Hostel A AC Maintenance', status: 'In Progress', type: 'Maintenance' },
-                { title: 'Library Software Update', status: 'Scheduled', type: 'IT Support' },
-              ].map((item, i) => (
-                <div key={i} className="flex flex-col gap-2 p-4 rounded-2xl bg-white border border-gray-100 shadow-sm">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-gray-900">{item.title}</h4>
-                    <span className="text-xs font-bold px-2 py-1 bg-gray-100 rounded-md text-gray-600">{item.type}</span>
-                  </div>
-                  <p className="text-sm font-medium text-orange-600">{item.status}</p>
-                </div>
-              ))}
-            </div>
+        <div className="pt-8 border-t border-gray-200">
+          <div className="flex items-center gap-3 mb-6">
+            <Database className="text-brand-600" />
+            <h2 className="text-2xl font-bold text-gray-900">DBMS Management</h2>
+          </div>
+          
+          <div className="flex flex-wrap gap-2 mb-6">
+            {tables.map(t => (
+              <Button 
+                key={t.table} 
+                variant={activeTable?.table === t.table ? 'primary' : 'outline'}
+                onClick={() => setActiveTable(t)}
+                size="sm"
+              >
+                {t.title}
+              </Button>
+            ))}
+            {activeTable && (
+              <Button variant="outline" size="sm" onClick={() => setActiveTable(null)} className="ml-auto text-gray-500 hover:text-red-600 border-dashed">
+                Close Editor
+              </Button>
+            )}
           </div>
 
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-900">Announcements</h2>
-            <Card className="p-0 overflow-hidden">
-              <div className="divide-y divide-gray-100">
+          {activeTable && (
+            <DataEditor schema={activeTable.schema} table={activeTable.table} title={activeTable.title} />
+          )}
+        </div>
+
+        {!activeTable && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-900">Recent Tickets</h2>
+              <div className="space-y-4">
                 {[
-                  { title: 'Staff Meeting', desc: 'Mandatory meeting at 3 PM in Conference Room A.', time: 'Today' },
-                  { title: 'System Upgrade', desc: 'UIMS will be down for maintenance this weekend.', time: 'Yesterday' },
-                ].map((update, i) => (
-                  <div key={i} className="p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex justify-between items-start mb-1">
-                      <h5 className="text-sm font-bold text-gray-900">{update.title}</h5>
-                      <span className="text-[10px] font-medium text-gray-400">{update.time}</span>
+                  { title: 'Projector Issue in Lab 402', status: 'Pending', type: 'IT Support' },
+                  { title: 'Hostel A AC Maintenance', status: 'In Progress', type: 'Maintenance' },
+                  { title: 'Library Software Update', status: 'Scheduled', type: 'IT Support' },
+                ].map((item, i) => (
+                  <div key={i} className="flex flex-col gap-2 p-4 rounded-2xl bg-white border border-gray-100 shadow-sm">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-bold text-gray-900">{item.title}</h4>
+                      <span className="text-xs font-bold px-2 py-1 bg-gray-100 rounded-md text-gray-600">{item.type}</span>
                     </div>
-                    <p className="text-xs text-gray-500 leading-relaxed">{update.desc}</p>
+                    <p className="text-sm font-medium text-orange-600">{item.status}</p>
                   </div>
                 ))}
               </div>
-            </Card>
+            </div>
+
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-900">Announcements</h2>
+              <Card className="p-0 overflow-hidden">
+                <div className="divide-y divide-gray-100">
+                  {[
+                    { title: 'Staff Meeting', desc: 'Mandatory meeting at 3 PM in Conference Room A.', time: 'Today' },
+                    { title: 'System Upgrade', desc: 'UIMS will be down for maintenance this weekend.', time: 'Yesterday' },
+                  ].map((update, i) => (
+                    <div key={i} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex justify-between items-start mb-1">
+                        <h5 className="text-sm font-bold text-gray-900">{update.title}</h5>
+                        <span className="text-[10px] font-medium text-gray-400">{update.time}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 leading-relaxed">{update.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </ShellLayout>
   );

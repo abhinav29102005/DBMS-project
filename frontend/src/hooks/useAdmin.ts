@@ -27,15 +27,20 @@ export function useHostelOccupancy() {
 export function useLibraryStats() {
   return useQuery({
     queryKey: ['admin', 'library', 'stats'],
-    queryFn: libraryService.getStats,
+    queryFn: () => libraryService.getStats(),
   });
 }
 
 export function useAllStudents(filters?: any) {
   return useQuery({
     queryKey: ['admin', 'students', filters],
-    queryFn: () => {
-      return [];
-    },
+    queryFn: () => adminService.getStudents(filters),
+  });
+}
+
+export function useAdminHostelStats() {
+  return useQuery({
+    queryKey: ['admin', 'hostel', 'stats'],
+    queryFn: () => hostelService.getHostelStats(),
   });
 }

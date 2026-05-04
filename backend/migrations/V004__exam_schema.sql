@@ -25,8 +25,8 @@ CREATE TABLE "exam"."exams" (
 
 CREATE TABLE "exam"."final_results" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-	"course_offering_id" uuid NOT NULL UNIQUE,
-	"student_id" uuid NOT NULL UNIQUE,
+	"course_offering_id" uuid NOT NULL,
+	"student_id" uuid NOT NULL,
 	"total_marks" numeric(6, 2),
 	"grade_code" text,
 	"grade_points" numeric(4, 2),

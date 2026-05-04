@@ -23,6 +23,10 @@ export const studentService = {
     return apiFetch('/api/v1/library/my-issues');
   },
 
+  getExams: async () => {
+    return apiFetch('/api/v1/academic/students/me/exams');
+  },
+
   getSchedule: async () => {
     return apiFetch('/api/v1/academic/students/me/schedule');
   },

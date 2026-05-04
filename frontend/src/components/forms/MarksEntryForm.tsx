@@ -1,26 +1,30 @@
 'use client';
-
+ 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { useRecordMarks } from '@/hooks/useFaculty';
 
 const MarksSchema = z.object({
-  internal: z.number().min(0).max(30),
-  final: z.number().min(0).max(70),
+  internal: z.number().min(0).max(50),
+  external: z.number().min(0).max(50),
+  grade: z.string().min(1).max(2).toUpperCase(),
 });
 
 type MarksFormValues = z.infer<typeof MarksSchema>;
 
 interface Props {
   studentName: string;
-  initialMarks: number;
+  studentId: string;
+  offeringId: string;
   onSuccess: () => void;
 }
 
-export function MarksEntryForm({ studentName, initialMarks, onSuccess }: Props) {
+export function MarksEntryForm({ studentName, studentId, offeringId, onSuccess }: Props) {
+  const { mutateAsync: recordMarks } = useRecordMarks();
   const {
     register,
     handleSubmit,
@@ -28,19 +32,25 @@ export function MarksEntryForm({ studentName, initialMarks, onSuccess }: Props) 
   } = useForm<MarksFormValues>({
     resolver: zodResolver(MarksSchema),
     defaultValues: {
-      internal: Math.min(initialMarks, 30),
-      final: Math.max(0, initialMarks - 20),
+      internal: 0,
+      external: 0,
+      grade: 'F'
     }
   });
 
   const onSubmit = async (data: MarksFormValues) => {
     try {
-
-      await new Promise(resolve => setTimeout(resolve, 800));
-      toast.success(`Marks updated for ${studentName}: Total ${data.internal + data.final}`);
+      await recordMarks({
+        studentId,
+        offeringId,
+        marksInternal: data.internal,
+        marksExternal: data.external,
+        grade: data.grade
+      });
+      toast.success(`Marks updated for ${studentName}`);
       onSuccess();
     } catch (err: any) {
-      toast.error('Failed to update marks');
+      toast.error(err.message || 'Failed to update marks');
     }
   };
 
@@ -54,17 +64,25 @@ export function MarksEntryForm({ studentName, initialMarks, onSuccess }: Props) 
       </div>
 
       <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <Input
+            label="Internal (0-50)"
+            type="number"
+            error={errors.internal?.message}
+            {...register('internal', { valueAsNumber: true })}
+          />
+          <Input
+            label="External (0-50)"
+            type="number"
+            error={errors.external?.message}
+            {...register('external', { valueAsNumber: true })}
+          />
+        </div>
         <Input
-          label="Internal Marks (0-30)"
-          type="number"
-          error={errors.internal?.message}
-          {...register('internal', { valueAsNumber: true })}
-        />
-        <Input
-          label="Final Exam Marks (0-70)"
-          type="number"
-          error={errors.final?.message}
-          {...register('final', { valueAsNumber: true })}
+          label="Grade (e.g. A+, B, F)"
+          placeholder="A+"
+          error={errors.grade?.message}
+          {...register('grade')}
         />
       </div>
 
@@ -73,7 +91,7 @@ export function MarksEntryForm({ studentName, initialMarks, onSuccess }: Props) 
           Cancel
         </Button>
         <Button variant="primary" className="flex-1" loading={isSubmitting}>
-          Save Marks
+          Save & Submit
         </Button>
       </div>
     </form>

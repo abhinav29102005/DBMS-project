@@ -11,6 +11,7 @@ import { useSemesters } from '@/hooks/useAcademic';
 import { Loading } from '@/components/feedback/Loading';
 
 import { ErrorState } from '@/components/feedback/ErrorState';
+import { exportToPDF } from '@/lib/pdfExport';
 
 export default function ResultsPage() {
   const { data: semesters } = useSemesters();
@@ -88,25 +89,24 @@ export default function ResultsPage() {
     </Card>
   );
 
-  const handleExport = () => {
-    // Basic CSV export logic
-    const headers = columns.map(c => (c as any).header).join(',');
-    const rows = (results || []).map(r => [
-      r.courseCode,
-      r.title,
-      r.credits,
-      r.marksInternal || 0,
-      r.marksExternal || 0,
-      r.grade || '-',
-      r.status || '-'
-    ].join(',')).join('\n');
-    
-    const blob = new Blob([`${headers}\n${rows}`], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `results_${selectedSemesterId}.csv`;
-    a.click();
+  const handleExport = async () => {
+    if (!results) return;
+    await exportToPDF({
+      title: 'Academic Results Marksheet',
+      filename: `marksheet-${selectedSemesterId}`,
+      headers: ['Code', 'Course', 'Credits', 'Internal', 'External', 'Grade', 'Status', 'Verification'],
+      data: results.map((r: any) => [
+        r.courseCode,
+        r.title,
+        r.credits,
+        r.marksInternal ?? '-',
+        r.marksExternal ?? '-',
+        r.grade || '-',
+        r.status || 'Pending',
+        `VERIFY-RESULT-${r.courseCode}-${selectedSemesterId}` // QR Data
+      ]),
+      qrDataIndex: 7
+    });
   };
 
   const handlePrint = () => {

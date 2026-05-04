@@ -12,25 +12,40 @@ import { QRService } from '../../../infrastructure/utils/qr-service';
 
 const libraryRouter = AutoRouter<AuthenticatedRequest, [Env]>({ base: '/api/v1/library' });
 
+libraryRouter.get('/subjects', requireAuth, async (request, env) => {
+  const sql = createDbClient(env);
+  return Response.json(await sql`SELECT * FROM library.subjects ORDER BY name`);
+});
+
 libraryRouter.get('/books', requireAuth, async (request, env) => {
-  const { q, page = '1' } = request.query;
+  const { search, subjectId, page = '1' } = request.query;
   const sql = createDbClient(env);
   const offset = (parseInt(page as string) - 1) * 20;
 
-  if (q) {
+  if (search) {
     const rows = await sql`
-      SELECT id, isbn, title, edition, author, publisher, ts_rank(search_vector, query) AS rank
-      FROM library.books, plainto_tsquery('english', ${q}) query
-      WHERE search_vector @@ query AND deleted_at IS NULL
-      ORDER BY rank DESC
+      SELECT b.*, s.name as subject_name,
+        (SELECT COUNT(*) FROM library.book_copies WHERE book_id = b.id) as total_copies,
+        (SELECT COUNT(*) FROM library.book_copies WHERE book_id = b.id AND status = 'available') as available_copies
+      FROM library.books b
+      LEFT JOIN library.subjects s ON b.subject_id = s.id
+      WHERE (b.title ILIKE ${'%' + search + '%'} OR b.author ILIKE ${'%' + search + '%'} OR b.isbn ILIKE ${'%' + search + '%'})
+        AND b.deleted_at IS NULL
+      ORDER BY b.title
       LIMIT 20 OFFSET ${offset}
     `;
     return Response.json(rows);
   }
 
   const rows = await sql`
-    SELECT * FROM library.books WHERE deleted_at IS NULL
-    ORDER BY title
+    SELECT b.*, s.name as subject_name,
+      (SELECT COUNT(*) FROM library.book_copies WHERE book_id = b.id) as total_copies,
+      (SELECT COUNT(*) FROM library.book_copies WHERE book_id = b.id AND status = 'available') as available_copies
+    FROM library.books b
+    LEFT JOIN library.subjects s ON b.subject_id = s.id
+    WHERE b.deleted_at IS NULL
+      AND (${subjectId}::uuid IS NULL OR b.subject_id = ${subjectId})
+    ORDER BY b.title
     LIMIT 20 OFFSET ${offset}
   `;
   return Response.json(rows);
@@ -56,51 +71,78 @@ libraryRouter.get('/my-issues', requireAuth, async (request, env) => {
 });
 
 const issueSchema = z.object({
-  barcode: z.string(),
-  memberUserId: z.string().uuid(),
-  dueAt: z.string()
+  barcode: z.string().optional(),
+  bookId: z.string().uuid().optional(),
+  memberUserId: z.string().uuid().optional(),
+  dueAt: z.string().optional()
 });
 
-libraryRouter.post('/issue', requireAuth, async (request, env) => {
-  const body = await request.json();
-  const result = issueSchema.safeParse(body);
-  if (!result.success) throw new ValidationError('Invalid request body');
+libraryRouter.post('/issues', requireAuth, async (request, env) => {
+  try {
+    const body = await request.json();
+    console.log('[Library] Issue request body:', body);
+    
+    const result = issueSchema.safeParse(body);
+    if (!result.success) {
+      console.error('[Library] Validation failed:', result.error);
+      throw new ValidationError('Invalid request body');
+    }
 
-  const sql = createDbClient(env);
+    const sql = createDbClient(env);
+    const memberId = result.data.memberUserId || request.ctx!.userId;
+    // Ensure date is in a format Postgres likes
+    const dueDate = result.data.dueAt || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
 
-  const rows = await sql`
-    INSERT INTO library.issues (copy_id, member_user_id, issued_by, due_at)
-    SELECT bc.id, ${result.data.memberUserId}, ${request.ctx!.userId}, ${result.data.dueAt}
-    FROM library.book_copies bc
-    WHERE bc.barcode = ${result.data.barcode} AND bc.status = 'available'
-    RETURNING id, copy_id
-  `;
+    console.log(`[Library] Processing issue for member: ${memberId}`);
 
-  if (rows.length === 0) throw new ValidationError('Copy not available or not found');
+    let copyId: string;
+    
+    if (result.data.barcode) {
+      const copies = await sql`
+        SELECT id FROM library.book_copies 
+        WHERE barcode = ${result.data.barcode} AND status = 'available'
+      `;
+      if (copies.length === 0) throw new ValidationError('Book copy not available or not found');
+      copyId = copies[0].id;
+    } else if (result.data.bookId) {
+      const copies = await sql`
+        SELECT id FROM library.book_copies 
+        WHERE book_id = ${result.data.bookId} AND status = 'available'
+        LIMIT 1
+      `;
+      if (copies.length === 0) throw new ValidationError('No available copies for this book');
+      copyId = copies[0].id;
+    } else {
+      throw new ValidationError('Either barcode or bookId must be provided');
+    }
 
-  // Send email
-  const details = await sql`
-    SELECT u.email, u.first_name, b.title, bc.barcode
-    FROM auth.users u
-    CROSS JOIN library.books b
-    JOIN library.book_copies bc ON b.id = bc.book_id
-    WHERE u.id = ${result.data.memberUserId} AND bc.id = ${rows[0].copy_id}
-  `;
+    console.log(`[Library] Found available copy: ${copyId}`);
 
-  if (details.length > 0) {
-    const emailService = new BrevoEmailService(env.BREVO_API_KEY);
-    await emailService.send({
-      to: details[0].email,
-      subject: 'Library Book Issued',
-      text: `Hello ${details[0].first_name},\n\nYou have been issued "${details[0].title}" (Barcode: ${details[0].barcode}).\nDue Date: ${new Date(result.data.dueAt).toLocaleDateString()}`,
-      html: `<h1>Book Issued</h1><p>Hello <strong>${details[0].first_name}</strong>,</p><p>You have been issued <strong>"${details[0].title}"</strong>.</p><p>Barcode: ${details[0].barcode}<br>Due Date: ${new Date(result.data.dueAt).toLocaleDateString()}</p>`
-    }).catch(console.error);
+    // 2. Insert issue
+    const issueRows = await sql`
+      INSERT INTO library.issues (copy_id, member_user_id, issued_by, due_at)
+      VALUES (${copyId}, ${memberId}, ${request.ctx!.userId}, ${dueDate})
+      RETURNING id
+    `;
+
+    // 3. Update copy status
+    await sql`
+      UPDATE library.book_copies SET status = 'issued' WHERE id = ${copyId}
+    `;
+
+    console.log(`[Library] Successfully issued. Issue ID: ${issueRows[0].id}`);
+    return Response.json({ issueId: issueRows[0].id, message: 'Book issued successfully' });
+
+  } catch (err: any) {
+    console.error('[Library] Issue Error:', err);
+    if (err instanceof ValidationError) {
+      return Response.json({ error: 'VALIDATION_ERROR', message: err.message }, { status: 400 });
+    }
+    return Response.json({ error: 'INTERNAL_ERROR', message: err.message }, { status: 500 });
   }
-
-  return Response.json({ issueId: rows[0].id });
 });
 
-libraryRouter.patch('/return/:issueId', requireAuth, async (request, env) => {
+libraryRouter.post('/issues/:issueId/return', requireAuth, async (request, env) => {
   const { issueId } = request.params;
   const sql = createDbClient(env);
 
@@ -113,7 +155,56 @@ libraryRouter.patch('/return/:issueId', requireAuth, async (request, env) => {
 
   if (rows.length === 0) throw new NotFoundError('Active issue', issueId);
 
+  await sql`
+    UPDATE library.book_copies SET status = 'available' WHERE id = ${rows[0].copy_id}
+  `;
+
   return Response.json({ message: 'Book returned successfully' });
+});
+
+const createBookSchema = z.object({
+  isbn: z.string(),
+  title: z.string(),
+  author: z.string(),
+  publisher: z.string().optional(),
+  pdf_url: z.string().url().optional().or(z.literal('')),
+  subject_id: z.string().uuid(),
+  copies: z.number().int().min(1).max(100).default(1)
+});
+
+libraryRouter.post('/books', requireAuth, async (request, env) => {
+  const body = await request.json();
+  const result = createBookSchema.safeParse(body);
+  if (!result.success) {
+    console.error('[Library] Create Validation Failed:', result.error);
+    throw new ValidationError('Invalid request body');
+  }
+
+  const sql = createDbClient(env);
+
+  try {
+    // 1. Create Book
+    const bookRows = await sql`
+      INSERT INTO library.books (isbn, title, author, publisher, subject_id, pdf_url)
+      VALUES (${result.data.isbn}, ${result.data.title}, ${result.data.author}, ${result.data.publisher || null}, ${result.data.subject_id}, ${result.data.pdf_url || null})
+      RETURNING id
+    `;
+    const bookId = bookRows[0].id;
+
+    // 2. Create Copies
+    for (let i = 0; i < result.data.copies; i++) {
+      const barcode = `${result.data.isbn}-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+      await sql`
+        INSERT INTO library.book_copies (book_id, barcode, status)
+        VALUES (${bookId}, ${barcode}, 'available')
+      `;
+    }
+
+    return Response.json({ id: bookId, message: 'Book and copies created successfully' });
+  } catch (err: any) {
+    if (err.message.includes('unique constraint')) throw new ValidationError('ISBN already exists');
+    throw err;
+  }
 });
 
 export { libraryRouter };

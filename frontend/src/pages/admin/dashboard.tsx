@@ -35,10 +35,17 @@ export default function AdminDashboard() {
 
   const tables = [
     { schema: 'auth', table: 'users', title: 'User Management' },
+    { schema: 'academic', table: 'students', title: 'Student Profiles' },
+    { schema: 'academic', table: 'faculty', title: 'Faculty Profiles' },
     { schema: 'academic', table: 'courses', title: 'Course Catalog' },
     { schema: 'academic', table: 'course_offerings', title: 'Course Offerings' },
     { schema: 'academic', table: 'departments', title: 'Departments' },
     { schema: 'exam', table: 'marks', title: 'Exam Marks' },
+    { schema: 'exam', table: 'final_results', title: 'Final Results' },
+    { schema: 'hostel', table: 'rooms', title: 'Hostel Rooms' },
+    { schema: 'hostel', table: 'complaints', title: 'Hostel Complaints' },
+    { schema: 'hostel', table: 'outpasses', title: 'Outpass Requests' },
+    { schema: 'library', table: 'books', title: 'Library Catalog' },
   ];
 
   return (
@@ -58,18 +65,18 @@ export default function AdminDashboard() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card title="Total Students" subtitle="Active Enrollment" icon={Users}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card title="Total Students" subtitle="Active Enrollment" icon={Users} href="/admin/students">
             <div className="mt-2 flex items-baseline gap-2">
               {isLoading ? <Skeleton className="h-9 w-24" /> : (
                 <>
                   <span className="text-3xl font-bold text-gray-900">{stats?.totalStudents?.toLocaleString() || 0}</span>
-                  <span className="text-sm font-medium text-green-600">+12%</span>
+                  <span className="text-sm font-medium text-green-600">Syncing</span>
                 </>
               )}
             </div>
           </Card>
-          <Card title="Faculty" subtitle="Across Departments" icon={UserCheck}>
+          <Card title="Faculty" subtitle="Across Departments" icon={UserCheck} href="/admin/faculty">
             <div className="mt-2 flex items-baseline gap-2">
               {isLoading ? <Skeleton className="h-9 w-24" /> : (
                 <>
@@ -79,22 +86,42 @@ export default function AdminDashboard() {
               )}
             </div>
           </Card>
-          <Card title="System Health" subtitle="Service Status" icon={Building2}>
+          <Card title="System Health" subtitle="Service Status" icon={Building2} href="/admin/settings">
             <div className="mt-2 flex items-baseline gap-2">
               {isLoading ? <Skeleton className="h-9 w-24" /> : (
                 <>
-                  <span className="text-3xl font-bold text-gray-900">{stats?.systemHealth || '99%'}</span>
-                  <span className="text-sm font-medium text-green-600">Optimal</span>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.systemHealth || '99.9%'}</span>
+                  <span className="text-sm font-medium text-green-600">Stable</span>
                 </>
               )}
             </div>
           </Card>
-          <Card title="Active Courses" subtitle="System Resources" icon={BookOpen}>
+          <Card title="Active Offerings" subtitle="Current Semester" icon={BookOpen} href="/admin/courses">
             <div className="mt-2 flex items-baseline gap-2">
               {isLoading ? <Skeleton className="h-9 w-24" /> : (
                 <>
                   <span className="text-3xl font-bold text-gray-900">{stats?.activeCourses || 0}</span>
-                  <span className="text-sm font-medium text-green-600">Syncing</span>
+                  <span className="text-sm font-medium text-brand-600">Ongoing</span>
+                </>
+              )}
+            </div>
+          </Card>
+          <Card title="Hostel Occupancy" subtitle="Allocated Beds" icon={Building2} href="/admin/hostel">
+            <div className="mt-2 flex items-baseline gap-2">
+              {isLoading ? <Skeleton className="h-9 w-24" /> : (
+                <>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.hostelOccupancy || 0}</span>
+                  <span className="text-sm font-medium text-orange-600">Beds</span>
+                </>
+              )}
+            </div>
+          </Card>
+          <Card title="Library Catalog" subtitle="Total Books" icon={Database} href="/admin/library">
+            <div className="mt-2 flex items-baseline gap-2">
+              {isLoading ? <Skeleton className="h-9 w-24" /> : (
+                <>
+                  <span className="text-3xl font-bold text-gray-900">{stats?.library?.total_books || 0}</span>
+                  <span className="text-sm font-medium text-purple-600">Records</span>
                 </>
               )}
             </div>
@@ -127,7 +154,7 @@ export default function AdminDashboard() {
           {activeTable ? (
             <DataEditor schema={activeTable.schema} table={activeTable.table} title={activeTable.title} />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 opacity-60 pointer-events-none filter grayscale">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               <Card className="lg:col-span-2" title="Enrollment Trends" icon={BarChart3}>
                 {trendsLoading ? <Skeleton className="h-[300px] w-full" /> : (
                   <DashboardChart

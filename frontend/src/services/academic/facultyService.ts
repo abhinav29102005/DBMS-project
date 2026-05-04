@@ -20,6 +20,10 @@ export const facultyService = {
     return apiFetch('/api/v1/academic/faculty/me/stats');
   },
 
+  getAdvisees: async (): Promise<any[]> => {
+    return apiFetch('/api/v1/academic/faculty/me/advisees');
+  },
+
   getSchedule: async (): Promise<Lecture[]> => {
     return apiFetch('/api/v1/academic/faculty/me/schedule');
   },
@@ -28,7 +32,14 @@ export const facultyService = {
     return apiFetch('/api/v1/academic/faculty/me/offerings');
   },
 
+  getOfferingStudents: async (offeringId: string): Promise<any[]> => {
+    return apiFetch(`/api/v1/academic/faculty/offerings/${offeringId}/students`);
+  },
+  
   recordMarks: async (data: any) => {
-    return apiFetch.post('/api/v1/academic/faculty/marks', data);
+    return apiFetch('/api/v1/academic/faculty/marks', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
   }
 };

@@ -97,7 +97,10 @@ hostelRouter.post('/allocate', requireAuth, async (request, env) => {
     `;
 
     if (details.length > 0) {
-      const emailService = new BrevoEmailService(env.BREVO_API_KEY);
+      const emailService = new BrevoEmailService({
+        user: (env as any).BREVO_SMTP_USER,
+        pass: (env as any).BREVO_SMTP_PASS
+      });
       await emailService.send({
         to: details[0].email,
         subject: 'Hostel Bed Allocated',
@@ -147,6 +150,79 @@ hostelRouter.put('/allocations/:id/vacate', requireAuth, async (request, env) =>
   }
 
   return Response.json({ message: 'Vacated successfully' });
+});
+
+hostelRouter.get('/complaints', requireAuth, async (request, env) => {
+  const sql = createDbClient(env);
+  const rows = await sql`
+    SELECT c.*, s.student_no, u.first_name || ' ' || u.last_name as student_name
+    FROM hostel.complaints c
+    JOIN academic.students s ON c.student_id = s.id
+    JOIN auth.users u ON s.user_id = u.id
+    WHERE (s.user_id = ${request.ctx!.userId} OR ${['admin', 'staff', 'warden'].includes(request.ctx!.role)})
+    ORDER BY c.created_at DESC
+  `;
+  return Response.json(rows);
+});
+
+const complaintSchema = z.object({
+  category: z.enum(['Cleaning', 'Electrical', 'Plumbing', 'Internet', 'Furniture', 'Other']),
+  description: z.string(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional()
+});
+
+hostelRouter.post('/complaints', requireAuth, async (request, env) => {
+  const body = await request.json();
+  const result = complaintSchema.safeParse(body);
+  if (!result.success) throw new ValidationError('Invalid request body');
+
+  const sql = createDbClient(env);
+  const studentRows = await sql`SELECT id FROM academic.students WHERE user_id = ${request.ctx!.userId}`;
+  if (studentRows.length === 0) throw new ForbiddenError('Only students can file complaints');
+
+  const rows = await sql`
+    INSERT INTO hostel.complaints (student_id, category, description, priority)
+    VALUES (${studentRows[0].id}, ${result.data.category}, ${result.data.description}, ${result.data.priority || 'medium'})
+    RETURNING id
+  `;
+  return Response.json(rows[0]);
+});
+
+hostelRouter.get('/outpasses', requireAuth, async (request, env) => {
+  const sql = createDbClient(env);
+  const rows = await sql`
+    SELECT o.*, s.student_no, u.first_name || ' ' || u.last_name as student_name
+    FROM hostel.outpasses o
+    JOIN academic.students s ON o.student_id = s.id
+    JOIN auth.users u ON s.user_id = u.id
+    WHERE (s.user_id = ${request.ctx!.userId} OR ${['admin', 'staff', 'warden'].includes(request.ctx!.role)})
+    ORDER BY o.created_at DESC
+  `;
+  return Response.json(rows);
+});
+
+const outpassSchema = z.object({
+  reason: z.string(),
+  destination: z.string(),
+  outTime: z.string(),
+  inTime: z.string()
+});
+
+hostelRouter.post('/outpasses', requireAuth, async (request, env) => {
+  const body = await request.json();
+  const result = outpassSchema.safeParse(body);
+  if (!result.success) throw new ValidationError('Invalid request body');
+
+  const sql = createDbClient(env);
+  const studentRows = await sql`SELECT id FROM academic.students WHERE user_id = ${request.ctx!.userId}`;
+  if (studentRows.length === 0) throw new ForbiddenError('Only students can request outpasses');
+
+  const rows = await sql`
+    INSERT INTO hostel.outpasses (student_id, reason, destination, out_time, in_time)
+    VALUES (${studentRows[0].id}, ${result.data.reason}, ${result.data.destination}, ${result.data.outTime}, ${result.data.inTime})
+    RETURNING id
+  `;
+  return Response.json(rows[0]);
 });
 
 export { hostelRouter };

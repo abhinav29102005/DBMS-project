@@ -20,7 +20,9 @@ const loginSchema = z.object({
 });
 
 authRouter.post('/login', async (request, env) => {
-  const body = await request.json();
+  console.log('[AuthRouter] Received login request');
+  const body = await request.json() as any;
+  console.log('[AuthRouter] Body:', body?.email);
   const result = loginSchema.safeParse(body);
 
   if (!result.success) {
@@ -56,7 +58,10 @@ authRouter.post('/register', async (request, env) => {
 
   const sql = createDbClient(env);
   const userRepo = new UserRepository(sql);
-  const emailService = new BrevoEmailService(env.BREVO_API_KEY);
+  const emailService = new BrevoEmailService({
+    user: (env as any).BREVO_SMTP_USER,
+    pass: (env as any).BREVO_SMTP_PASS
+  });
   const useCase = new RegisterUseCase(userRepo, emailService);
 
   const user = await useCase.execute({

@@ -16,6 +16,13 @@ export function useFacultySchedule() {
   });
 }
 
+export function useFacultyAdvisees() {
+  return useQuery({
+    queryKey: ['faculty', 'advisees'],
+    queryFn: facultyService.getAdvisees,
+  });
+}
+
 export function useFacultyOfferings() {
   return useQuery({
     queryKey: ['faculty', 'offerings'],
@@ -38,5 +45,12 @@ export function useRecordMarks() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['faculty', 'stats'] });
     },
+  });
+}
+export function useOfferingStudents(offeringId: string) {
+  return useQuery({
+    queryKey: ['faculty', 'offering', offeringId, 'students'],
+    queryFn: () => facultyService.getOfferingStudents(offeringId),
+    enabled: !!offeringId,
   });
 }

@@ -1,8 +1,9 @@
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { useAuthStore, AuthState } from '@/store/authStore';
 import { cn } from '@/lib/utils';
-import { useStudentStats, useStudentSchedule } from '@/hooks/useStudent';
+import { useStudentStats, useStudentSchedule, useStudentExams } from '@/hooks/useStudent';
 import { useNotifications } from '@/hooks/useCore';
 import { Loading } from '@/components/feedback/Loading';
 import { ErrorState } from '@/components/feedback/ErrorState';
@@ -26,9 +27,10 @@ export default function StudentDashboard() {
   const user = useAuthStore((s: AuthState) => s.user);
   const { data: stats, isLoading: isLoadingStats, isError, refetch } = useStudentStats();
   const { data: schedule, isLoading: isLoadingSchedule } = useStudentSchedule();
+  const { data: exams, isLoading: isLoadingExams } = useStudentExams();
   const { data: notifications, isLoading: isLoadingNotifs } = useNotifications();
 
-  const isLoading = isLoadingStats || isLoadingSchedule || isLoadingNotifs;
+  const isLoading = isLoadingStats || isLoadingSchedule || isLoadingNotifs || isLoadingExams;
 
   if (isError) {
     return (
@@ -66,43 +68,53 @@ export default function StudentDashboard() {
 
         {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card title="Attendance" subtitle="Current Semester" icon={Clock}>
+          <Card title="Attendance" subtitle="Current Semester" icon={Clock} href="/student/attendance">
             {isLoading ? (
               <Skeleton className="h-10 w-24 mt-2" />
             ) : (
               <div className="mt-2">
-                <span className="text-3xl font-bold text-gray-900">{stats?.attendance || '84%'}</span>
-                <span className="ml-2 text-sm font-medium text-green-600">+2%</span>
+                <span className="text-3xl font-bold text-gray-900">{stats?.attendance || '0%'}</span>
+                <span className={cn(
+                  "ml-2 text-sm font-medium",
+                  parseInt(stats?.attendance || '0') >= 75 ? "text-green-600" : "text-red-600"
+                )}>
+                  {parseInt(stats?.attendance || '0') >= 75 ? 'Good' : 'Low'}
+                </span>
               </div>
             )}
           </Card>
-          <Card title="Current GPA" subtitle="Academic Standing" icon={TrendingUp}>
+          <Card title="Current GPA" subtitle="Academic Standing" icon={TrendingUp} href="/student/results">
             {isLoading ? (
               <Skeleton className="h-10 w-24 mt-2" />
             ) : (
               <div className="mt-2">
-                <span className="text-3xl font-bold text-gray-900">{stats?.gpa || '3.82'}</span>
-                <span className="ml-2 text-sm font-medium text-blue-600">Top 5%</span>
+                <span className="text-3xl font-bold text-gray-900">{stats?.gpa || '0.00'}</span>
+                <span className="ml-2 text-sm font-medium text-blue-600">Overall</span>
               </div>
             )}
           </Card>
-          <Card title="Courses" subtitle="Registered This Term" icon={BookOpen}>
+          <Card title="Courses" subtitle="Registered This Term" icon={BookOpen} href="/student/courses">
             {isLoading ? (
               <Skeleton className="h-10 w-24 mt-2" />
             ) : (
               <div className="mt-2">
-                <span className="text-3xl font-bold text-gray-900">{stats?.coursesCount || '6'}</span>
-                <span className="ml-2 text-sm font-medium text-gray-500">18 Credits</span>
+                <span className="text-3xl font-bold text-gray-900">{stats?.coursesCount || '0'}</span>
+                <span className="ml-2 text-sm font-medium text-gray-500">Active</span>
               </div>
             )}
           </Card>
-          <Card title="Fines" subtitle="Library & Fees" icon={Calendar}>
+          <Card title="Fines" subtitle="Library & Fees" icon={Calendar} href="/student/fines">
             {isLoading ? (
               <Skeleton className="h-10 w-24 mt-2" />
             ) : (
               <div className="mt-2">
                 <span className="text-3xl font-bold text-gray-900">{stats?.fines || '$0.00'}</span>
-                <span className="ml-2 text-sm font-medium text-green-600">Clear</span>
+                <span className={cn(
+                  "ml-2 text-sm font-medium",
+                  stats?.fines === '$0.00' ? "text-green-600" : "text-red-600"
+                )}>
+                  {stats?.fines === '$0.00' ? 'Clear' : 'Pending'}
+                </span>
               </div>
             )}
           </Card>
@@ -188,6 +200,41 @@ export default function StudentDashboard() {
               <button className="w-full py-4 text-[11px] font-bold text-brand-600 bg-gray-50/50 hover:bg-brand-50 hover:text-brand-700 transition-all uppercase tracking-widest border-t border-gray-100">
                 View All Notifications
               </button>
+            </Card>
+            <Card title="Examination Schedule" icon={GraduationCap}>
+              <div className="space-y-6">
+                {exams?.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-sm text-gray-400">No upcoming exams scheduled.</p>
+                  </div>
+                ) : (
+                  exams?.slice(0, 3).map((exam: any, i: number) => (
+                    <div key={i} className="flex gap-4 p-4 rounded-2xl bg-gray-50/50 border border-transparent hover:border-brand-200 transition-all group">
+                      <div className={`h-12 w-12 rounded-xl flex flex-col items-center justify-center text-white font-bold ${
+                        exam.status === 'completed' ? 'bg-green-500' : 'bg-brand-600 shadow-lg shadow-brand-500/20'
+                      }`}>
+                        <span className="text-[10px] uppercase">{new Date(exam.scheduled_at).toLocaleString('default', { month: 'short' })}</span>
+                        <span className="text-lg leading-none">{new Date(exam.scheduled_at).getDate()}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-bold text-gray-900 truncate">{exam.name}</h4>
+                        <p className="text-[11px] text-gray-500 font-medium truncate">{exam.course_title}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <div className="px-2 py-0.5 bg-white rounded-md border border-gray-100 text-[10px] font-black text-brand-600 uppercase">
+                            Seat: {exam.seat_no || 'TBA'}
+                          </div>
+                          <div className="text-[10px] text-gray-400 font-bold uppercase truncate">
+                            {exam.venue}, {exam.room_no}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+                <Button variant="ghost" className="w-full h-12 rounded-2xl text-[11px] font-bold uppercase tracking-widest">
+                  View Full Calendar
+                </Button>
+              </div>
             </Card>
           </div>
         </div>

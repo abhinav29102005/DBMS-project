@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Loading } from '@/components/feedback/Loading';
-import { Edit2, Save, X, Trash2, Plus, Database } from 'lucide-react';
+import { Edit2, Save, X, Trash2, Plus, Database, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DataEditorProps {
@@ -21,8 +21,15 @@ export function DataEditor({ schema, table, title }: DataEditorProps) {
   const [columns, setColumns] = useState<string[]>([]);
   const [offset, setOffset] = useState(0);
   const [limit] = useState(50);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchUrl = `/api/v1/core/admin/data/${schema}/${table}`;
+
+  const filteredData = data.filter(row => 
+    Object.values(row).some(val => 
+      val?.toString().toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
 
   const loadData = async () => {
     setLoading(true);
@@ -118,6 +125,20 @@ export function DataEditor({ schema, table, title }: DataEditorProps) {
 
   if (loading && data.length === 0) return <Card className="p-8"><Loading /></Card>;
 
+  const handleExport = () => {
+    if (data.length === 0) return;
+    const headers = columns.join(',');
+    const rows = data.map(row => columns.map(col => `"${row[col]?.toString() || ''}"`).join(',')).join('\n');
+    const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + rows;
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${schema}_${table}_export.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Card className="flex flex-col h-[650px] overflow-hidden">
       <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-gray-50/50">
@@ -131,11 +152,23 @@ export function DataEditor({ schema, table, title }: DataEditorProps) {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <div className="relative mr-2">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+            <Input 
+              placeholder="Search in table..." 
+              className="pl-9 h-8 w-48 text-xs" 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+            />
+          </div>
           <div className="flex items-center gap-1 mr-4">
             <Button variant="outline" size="sm" onClick={() => setOffset(Math.max(0, offset - limit))} disabled={offset === 0}>Prev</Button>
             <span className="text-xs font-bold px-3">Page {Math.floor(offset/limit) + 1}</span>
             <Button variant="outline" size="sm" onClick={() => setOffset(offset + limit)} disabled={data.length < limit}>Next</Button>
           </div>
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={data.length === 0}>
+            Export CSV
+          </Button>
           <Button onClick={() => { setIsAdding(true); setEditFormData({}); }} size="sm">
             <Plus size={16} className="mr-2" /> Add Record
           </Button>
@@ -174,7 +207,7 @@ export function DataEditor({ schema, table, title }: DataEditorProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {data.map((row) => (
+            {filteredData.map((row) => (
               <tr key={row.id} className="hover:bg-gray-50/50 transition-colors">
                 {columns.map(col => (
                   <td key={col} className="px-6 py-4 whitespace-nowrap">

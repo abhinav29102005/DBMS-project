@@ -55,9 +55,7 @@ export function LoginForm() {
 
       toast.success('Signed in successfully');
       
-      const dashboardPath = ['student', 'faculty'].includes(response.user.role) 
-        ? '/profile/setup' 
-        : `/${response.user.role}/dashboard`;
+      const dashboardPath = `/${response.user.role}/dashboard`;
         
       router.replace(dashboardPath).catch(() => {
         window.location.href = dashboardPath;

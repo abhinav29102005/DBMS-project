@@ -4,7 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { Bell, User } from 'lucide-react';
 import { useRouter } from 'next/router';
 
-import { ThemeToggle } from './ThemeToggle';
+
 
 export function TopBar({ role }: { role: string }) {
   const user = useAuthStore((s) => s.user);
@@ -14,14 +14,13 @@ export function TopBar({ role }: { role: string }) {
   const title = pathname.split('/').pop()?.replace(/-/g, ' ') ?? 'UIMS';
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-white dark:bg-gray-900 dark:border-gray-800 px-4 transition-colors">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-white border-gray-200 px-4 transition-colors">
       <div className="flex items-center gap-2">
-        <h1 className="text-xl font-bold font-display capitalize text-gray-900 dark:text-gray-100 tracking-tight">{title}</h1>
+        <h1 className="text-xl font-bold font-display capitalize text-gray-900 tracking-tight">{title}</h1>
       </div>
 
       <div className="flex items-center gap-3">
-        <ThemeToggle />
-        <button className="relative rounded-full p-1.5 text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors">
+        <button className="relative rounded-full p-1.5 text-gray-500 hover:bg-gray-100 transition-colors">
           <Bell size={20} />
           <span className="absolute right-1.5 top-1.5 flex h-2 w-2 rounded-full bg-red-500" />
         </button>

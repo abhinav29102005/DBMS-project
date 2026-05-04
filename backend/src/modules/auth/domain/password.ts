@@ -3,10 +3,19 @@
 import bcrypt from 'bcryptjs';
 
 export async function hashPassword(plain: string, cost = 10): Promise<string> {
-
-  return bcrypt.hash(plain, cost);
+  return new Promise((resolve, reject) => {
+    bcrypt.hash(plain, cost, (err, hash) => {
+      if (err) reject(err);
+      else resolve(hash);
+    });
+  });
 }
 
 export async function verifyPassword(plain: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(plain, hash);
+  return new Promise((resolve, reject) => {
+    bcrypt.compare(plain, hash, (err, isMatch) => {
+      if (err) reject(err);
+      else resolve(isMatch);
+    });
+  });
 }

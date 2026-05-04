@@ -17,6 +17,7 @@ export class LoginUseCase {
   ) {}
 
   async execute(email: string, plain: string, ip: string): Promise<AuthSession> {
+    console.log(`[LoginUseCase] Attempting login for ${email} from ${ip}`);
 
     const rateLimitKey = `auth:login:rate:${ip}`;
     const limit = await checkRateLimit(this.redis, rateLimitKey, 5, 60);

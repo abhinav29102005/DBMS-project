@@ -6,14 +6,51 @@ import Head from 'next/head';
 import { QRCodeCanvas } from 'qrcode.react';
 import { exportToPDF } from '@/lib/pdfExport';
 
-import { useStudentHostel } from '@/hooks/useStudent';
+import { useStudentHostel, useStudentStats } from '@/hooks/useStudent';
+import { hostelService } from '@/services/hostel/hostelService';
 import { Loading } from '@/components/feedback/Loading';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 import { ErrorState } from '@/components/feedback/ErrorState';
 
 export default function StudentHostelPage() {
   const { data: allocation, isLoading, isError, refetch } = useStudentHostel();
+  const [isComplaintOpen, setIsComplaintOpen] = useState(false);
+  const [isOutpassOpen, setIsOutpassOpen] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+  const [complaintData, setComplaintData] = useState({ category: 'Other', description: '', priority: 'medium' });
+  const [outpassData, setOutpassData] = useState({ reason: '', destination: '', outTime: '', inTime: '' });
+
+  const handleComplaintSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormLoading(true);
+    try {
+      await hostelService.raiseComplaint(complaintData as any);
+      toast.success('Complaint raised successfully');
+      setIsComplaintOpen(false);
+      setComplaintData({ category: 'Other', description: '', priority: 'medium' });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to raise complaint');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleOutpassSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormLoading(true);
+    try {
+      await hostelService.requestOutpass(outpassData);
+      toast.success('Outpass request submitted');
+      setIsOutpassOpen(false);
+      setOutpassData({ reason: '', destination: '', outTime: '', inTime: '' });
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to request outpass');
+    } finally {
+      setFormLoading(false);
+    }
+  };
 
   if (isLoading) return <ShellLayout role="student"><Loading fullScreen /></ShellLayout>;
   if (isError) return <ShellLayout role="student"><ErrorState onRetry={refetch} /></ShellLayout>;
@@ -48,15 +85,15 @@ export default function StudentHostelPage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                     <div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hostel</span>
-                      <h3 className="text-xl font-black text-gray-900 truncate">{allocation.hostelName}</h3>
+                      <h3 className="text-xl font-black text-gray-900 truncate">{allocation.hostel_name}</h3>
                     </div>
                     <div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Room</span>
-                      <h3 className="text-4xl font-black text-gray-900">{allocation.roomNo}</h3>
+                      <h3 className="text-4xl font-black text-gray-900">{allocation.room_no}</h3>
                     </div>
                     <div>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bed No.</span>
-                      <h3 className="text-4xl font-black text-gray-900">{allocation.bedLabel}</h3>
+                      <h3 className="text-4xl font-black text-gray-900">{allocation.bed_label}</h3>
                     </div>
                   </div>
 
@@ -67,7 +104,7 @@ export default function StudentHostelPage() {
                       </div>
                       <div>
                         <p className="text-[10px] font-bold text-gray-400 uppercase">Block</p>
-                        <p className="text-sm font-bold text-gray-700">{allocation.blockName}</p>
+                        <p className="text-sm font-bold text-gray-700">{allocation.block_name}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -104,12 +141,109 @@ export default function StudentHostelPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card title="Maintenance" subtitle="Report issues in your room" icon={ShieldCheck}>
-                <Button variant="outline" className="w-full mt-4" disabled={!allocation}>Raise Complaint</Button>
+                <Button variant="outline" className="w-full mt-4" disabled={!allocation} onClick={() => setIsComplaintOpen(true)}>Raise Complaint</Button>
               </Card>
               <Card title="Outpass" subtitle="Apply for leave" icon={Calendar}>
-                <Button variant="outline" className="w-full mt-4" disabled={!allocation}>New Request</Button>
+                <Button variant="outline" className="w-full mt-4" disabled={!allocation} onClick={() => setIsOutpassOpen(true)}>New Request</Button>
               </Card>
             </div>
+
+            {/* Complaint Modal */}
+            {isComplaintOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <Card className="w-full max-w-md bg-white">
+                  <h3 className="text-xl font-bold mb-4">Raise Maintenance Complaint</h3>
+                  <form onSubmit={handleComplaintSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Category</label>
+                      <select 
+                        className="w-full p-3 rounded-xl border border-gray-100 bg-gray-50 focus:ring-2 focus:ring-brand-500 outline-none"
+                        value={complaintData.category}
+                        onChange={e => setComplaintData({...complaintData, category: e.target.value})}
+                      >
+                        <option>Cleaning</option>
+                        <option>Electrical</option>
+                        <option>Plumbing</option>
+                        <option>Internet</option>
+                        <option>Furniture</option>
+                        <option>Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Description</label>
+                      <textarea 
+                        className="w-full p-3 rounded-xl border border-gray-100 bg-gray-50 focus:ring-2 focus:ring-brand-500 outline-none min-h-[100px]"
+                        placeholder="Describe the issue..."
+                        value={complaintData.description}
+                        onChange={e => setComplaintData({...complaintData, description: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <Button type="button" variant="outline" className="flex-1" onClick={() => setIsComplaintOpen(false)}>Cancel</Button>
+                      <Button type="submit" className="flex-1" loading={formLoading}>Submit</Button>
+                    </div>
+                  </form>
+                </Card>
+              </div>
+            )}
+
+            {/* Outpass Modal */}
+            {isOutpassOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <Card className="w-full max-w-md bg-white">
+                  <h3 className="text-xl font-bold mb-4">Request Outpass</h3>
+                  <form onSubmit={handleOutpassSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Destination</label>
+                      <input 
+                        className="w-full p-3 rounded-xl border border-gray-100 bg-gray-50 focus:ring-2 focus:ring-brand-500 outline-none"
+                        placeholder="Where are you going?"
+                        value={outpassData.destination}
+                        onChange={e => setOutpassData({...outpassData, destination: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Reason</label>
+                      <input 
+                        className="w-full p-3 rounded-xl border border-gray-100 bg-gray-50 focus:ring-2 focus:ring-brand-500 outline-none"
+                        placeholder="Reason for leaving"
+                        value={outpassData.reason}
+                        onChange={e => setOutpassData({...outpassData, reason: e.target.value})}
+                        required
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">Out Time</label>
+                        <input 
+                          type="datetime-local"
+                          className="w-full p-3 rounded-xl border border-gray-100 bg-gray-50 focus:ring-2 focus:ring-brand-500 outline-none text-sm"
+                          value={outpassData.outTime}
+                          onChange={e => setOutpassData({...outpassData, outTime: e.target.value})}
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-1">In Time</label>
+                        <input 
+                          type="datetime-local"
+                          className="w-full p-3 rounded-xl border border-gray-100 bg-gray-50 focus:ring-2 focus:ring-brand-500 outline-none text-sm"
+                          value={outpassData.inTime}
+                          onChange={e => setOutpassData({...outpassData, inTime: e.target.value})}
+                          required
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-3 pt-2">
+                      <Button type="button" variant="outline" className="flex-1" onClick={() => setIsOutpassOpen(false)}>Cancel</Button>
+                      <Button type="submit" className="flex-1" loading={formLoading}>Request</Button>
+                    </div>
+                  </form>
+                </Card>
+              </div>
+            )}
           </div>
 
           <div className="space-y-6">
@@ -128,19 +262,21 @@ export default function StudentHostelPage() {
                   variant="secondary" 
                   className="w-full" 
                   disabled={!allocation}
-                  onClick={() => {
-                    exportToPDF({
+                  onClick={async () => {
+                    await exportToPDF({
                       title: 'Hostel Allocation Receipt',
-                      filename: `hostel-receipt-${allocation.roomNo}`,
+                      filename: `hostel-receipt-${allocation.room_no}`,
                       headers: ['Detail', 'Value'],
                       data: [
-                        ['Hostel Name', allocation.hostelName],
-                        ['Block', allocation.blockName],
-                        ['Room No.', allocation.roomNo],
-                        ['Bed Label', allocation.bedLabel],
+                        ['Hostel Name', allocation.hostel_name],
+                        ['Block', allocation.block_name],
+                        ['Room No.', allocation.room_no],
+                        ['Bed Label', allocation.bed_label],
                         ['Status', allocation.status.toUpperCase()],
-                        ['Valid From', new Date(allocation.allocated_from).toLocaleDateString()]
-                      ]
+                        ['Valid From', new Date(allocation.allocated_from).toLocaleDateString()],
+                        ['Verification (Scan)', allocation.qr_code_id]
+                      ],
+                      qrDataIndex: 1
                     });
                   }}
                 >

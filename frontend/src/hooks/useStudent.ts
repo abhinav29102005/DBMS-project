@@ -37,6 +37,13 @@ export function useStudentLibrary() {
   });
 }
 
+export function useStudentExams() {
+  return useQuery({
+    queryKey: ['student', 'exams'],
+    queryFn: studentService.getExams,
+  });
+}
+
 export function useStudentSchedule() {
   return useQuery({
     queryKey: ['student', 'schedule'],

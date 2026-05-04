@@ -51,11 +51,13 @@ export class AcademicRepository {
   async enrollStudent(studentId: string, offeringId: string): Promise<void> {
     await this.sql`
       INSERT INTO academic.enrollments (student_id, course_offering_id)
-      VALUES (${studentId}, ${offeringId});
+      VALUES (${studentId}, ${offeringId})
+    `;
 
+    await this.sql`
       UPDATE academic.course_offerings
       SET enrollment_count = enrollment_count + 1
-      WHERE id = ${offeringId};
+      WHERE id = ${offeringId}
     `;
   }
 
@@ -99,11 +101,11 @@ export class AcademicRepository {
         WHERE student_id = ${student.id}
       `,
       this.sql`SELECT grade_points FROM exam.final_results WHERE student_id = ${student.id} AND result_status = 'pass'`,
-      this.sql`SELECT COALESCE(SUM(amount), 0) as total FROM library.fines WHERE member_user_id = ${userId} AND status = 'unpaid'`
+      this.sql`SELECT COALESCE(SUM(amount), 0) as total FROM library.fines WHERE member_user_id = ${userId} AND settled_at IS NULL`
     ]);
 
     const gpa = results.length > 0 
-      ? (results.reduce((acc: number, r: any) => acc + parseFloat(r.grade_points), 0) / results.length).toFixed(2) 
+      ? (results.reduce((acc: number, r: any) => acc + parseFloat(r.grade_points || 0), 0) / results.length).toFixed(2) 
       : '0.00';
 
     return {
@@ -154,13 +156,34 @@ export class AcademicRepository {
     `;
   }
 
+  async getExamSchedules(studentId: string): Promise<any[]> {
+    return this.sql`
+      SELECT ex.*, c.title as course_title, c.course_code, sed.seat_no, sed.attendance_status
+      FROM exam.exams ex
+      JOIN academic.course_offerings co ON ex.course_offering_id = co.id
+      JOIN academic.courses c ON co.course_id = c.id
+      JOIN academic.enrollments e ON e.course_offering_id = co.id
+      LEFT JOIN exam.student_exam_details sed ON sed.exam_id = ex.id AND sed.student_id = ${studentId}
+      WHERE e.student_id = ${studentId} AND e.enrollment_status = 'enrolled'
+      ORDER BY ex.scheduled_at ASC
+    `;
+  }
+
   async getStudentResults(studentId: string): Promise<any[]> {
     return this.sql`
-      SELECT r.*, c.course_code, c.title, c.credits
-      FROM exam.final_results r
-      JOIN academic.course_offerings co ON r.course_offering_id = co.id
+      SELECT 
+        c.course_code as "courseCode", 
+        c.title, 
+        c.credits,
+        fr.grade_code as grade,
+        fr.result_status as status,
+        (SELECT m.marks_obtained FROM exam.marks m JOIN exam.exams e ON m.exam_id = e.id WHERE e.course_offering_id = co.id AND m.student_id = ${studentId} AND e.name ILIKE '%Mid%' LIMIT 1) as "marksInternal",
+        (SELECT m.marks_obtained FROM exam.marks m JOIN exam.exams e ON m.exam_id = e.id WHERE e.course_offering_id = co.id AND m.student_id = ${studentId} AND e.name ILIKE '%End%' LIMIT 1) as "marksExternal"
+      FROM academic.enrollments e
+      JOIN academic.course_offerings co ON e.course_offering_id = co.id
       JOIN academic.courses c ON co.course_id = c.id
-      WHERE r.student_id = ${studentId}
+      LEFT JOIN exam.final_results fr ON fr.student_id = ${studentId} AND fr.course_offering_id = co.id
+      WHERE e.student_id = ${studentId}
       ORDER BY co.semester_id
     `;
   }
@@ -180,11 +203,24 @@ export class AcademicRepository {
     await this.sql`
       UPDATE academic.enrollments
       SET enrollment_status = 'withdrawn', withdrawn_at = now()
-      WHERE student_id = ${studentId} AND course_offering_id = ${offeringId};
+      WHERE student_id = ${studentId} AND course_offering_id = ${offeringId}
+    `;
 
+    await this.sql`
       UPDATE academic.course_offerings
       SET enrollment_count = enrollment_count - 1
-      WHERE id = ${offeringId} AND enrollment_count > 0;
+      WHERE id = ${offeringId} AND enrollment_count > 0
+    `;
+  }
+
+  async listStudentsInOffering(offeringId: string): Promise<any[]> {
+    return this.sql`
+      SELECT s.id, s.student_no, u.first_name || ' ' || u.last_name as name, fr.grade_code as grade, fr.result_status as status
+      FROM academic.enrollments e
+      JOIN academic.students s ON e.student_id = s.id
+      JOIN auth.users u ON s.user_id = u.id
+      LEFT JOIN exam.final_results fr ON fr.student_id = s.id AND fr.course_offering_id = ${offeringId}
+      WHERE e.course_offering_id = ${offeringId} AND e.enrollment_status = 'enrolled'
     `;
   }
 }

@@ -1,8 +1,15 @@
 import { apiFetch } from '@/lib/api';
 
 export const libraryService = {
-  getBooks: async (query?: string) => {
-    return apiFetch(`/api/v1/library/books${query ? `?search=${query}` : ''}`);
+  getBooks: async (query?: string, subjectId?: string) => {
+    const params = new URLSearchParams();
+    if (query) params.append('search', query);
+    if (subjectId) params.append('subjectId', subjectId);
+    return apiFetch(`/api/v1/library/books?${params.toString()}`);
+  },
+
+  getSubjects: async () => {
+    return apiFetch('/api/v1/library/subjects');
   },
 
   getIssues: async (memberId: string) => {
@@ -23,6 +30,13 @@ export const libraryService = {
   returnBook: async (id: string) => {
     return apiFetch(`/api/v1/library/issues/${id}/return`, {
       method: 'POST',
+    });
+  },
+
+  addBook: async (data: any) => {
+    return apiFetch('/api/v1/library/books', {
+      method: 'POST',
+      body: JSON.stringify(data),
     });
   },
 

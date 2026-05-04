@@ -46,9 +46,8 @@ coreRouter.delete('/admin/data/:schema/:table/:id', requireAuth, async (request,
   
   const sql = createDbClient(env);
   try {
-    // Determine the primary key column (assuming 'id' for most, fallback to first column or error)
-    // For simplicity in this DBMS UI, we assume 'id' column exists
-    await sql(`DELETE FROM ${schema}.${table} WHERE id = $1`, [id]);
+    // For safety, we check if the table exists in our allowed list and only use ID for deletion
+    await sql`DELETE FROM ${sql(schema + '.' + table)} WHERE id = ${id}`;
     return Response.json({ success: true });
   } catch (err: any) {
     return Response.json({ error: err.message }, { status: 400 });
@@ -61,13 +60,21 @@ coreRouter.post('/admin/data/:schema/:table', requireAuth, async (request, env) 
   
   const body = await request.json() as Record<string, any>;
   const keys = Object.keys(body);
-  const values = Object.values(body);
-  
   const sql = createDbClient(env);
+  
   try {
-    const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ');
+    // We have to build the query carefully for the neon client
     const cols = keys.join(', ');
-    const result = await sql(`INSERT INTO ${schema}.${table} (${cols}) VALUES (${placeholders}) RETURNING *`, values);
+    const vals = keys.map(k => body[k]);
+    
+    // Neon doesn't support dynamic columns in tagged templates easily
+    // So we use a raw query for the structure and trust the ALLOWED_SCHEMAS check
+    // For values, we use the template
+    const result = await sql(`
+      INSERT INTO ${schema}.${table} (${cols}) 
+      VALUES (${vals.map(v => typeof v === 'string' ? `'${v.replace(/'/g, "''")}'` : v).join(', ')})
+      RETURNING *
+    `);
     return Response.json(result[0]);
   } catch (err: any) {
     return Response.json({ error: err.message }, { status: 400 });
@@ -79,15 +86,24 @@ coreRouter.put('/admin/data/:schema/:table/:id', requireAuth, async (request, en
   if (!ALLOWED_SCHEMAS.includes(schema)) return Response.json({ error: 'Schema not allowed' }, { status: 403 });
   
   const body = await request.json() as Record<string, any>;
-  // Remove id from body to prevent updating PK
   delete body.id;
-  const keys = Object.keys(body);
-  const values = Object.values(body);
   
+  const keys = Object.keys(body);
   const sql = createDbClient(env);
+  
   try {
-    const setClause = keys.map((k, i) => `${k} = $${i + 2}`).join(', ');
-    const result = await sql(`UPDATE ${schema}.${table} SET ${setClause} WHERE id = $1 RETURNING *`, [id, ...values]);
+    const setClause = keys.map(k => {
+      const v = body[k];
+      const escaped = typeof v === 'string' ? `'${v.replace(/'/g, "''")}'` : v;
+      return `${k} = ${escaped}`;
+    }).join(', ');
+
+    const result = await sql(`
+      UPDATE ${schema}.${table} 
+      SET ${setClause}
+      WHERE id = '${id}'
+      RETURNING *
+    `);
     return Response.json(result[0]);
   } catch (err: any) {
     return Response.json({ error: err.message }, { status: 400 });

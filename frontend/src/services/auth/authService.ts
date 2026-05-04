@@ -27,10 +27,12 @@ interface BackendLoginResponse {
 
 export const authService = {
   login: async (credentials: any): Promise<LoginResponse> => {
+    console.log('Attempting login for:', credentials.email);
     const raw = await apiFetch<BackendLoginResponse>('/api/v1/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
+    console.log('Login response received:', raw.user.role);
 
     // Map backend shape → frontend shape
     return {

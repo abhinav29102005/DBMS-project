@@ -35,12 +35,12 @@ export default function ProfileSetupPage() {
   const facultyMutation = useSetupFacultyProfile();
 
   useEffect(() => {
-    if (status?.isComplete) {
-      router.push(`/${status.role}/dashboard`);
+    if (user?.role) {
+      router.replace(`/${user.role}/dashboard`);
     }
-  }, [status, router]);
+  }, [user, router]);
 
-  if (statusLoading) return <Loading fullScreen />;
+  if (statusLoading || !user) return <Loading fullScreen />;
 
   const handleNext = () => setStep(2);
   

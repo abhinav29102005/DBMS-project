@@ -19,6 +19,7 @@ import {
 import { Role } from '@/types/api';
 import { useAuthStore } from '@/store/authStore';
 import { Logo } from '@/components/common/Logo';
+import { motion } from 'framer-motion';
 
 interface NavItem {
   href: string;
@@ -44,8 +45,8 @@ const NAV_MAP: Record<string, NavItem[]> = {
   admin: [
     { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/admin/students',  icon: Users,           label: 'Student Records' },
-    { href: '/admin/hostel',    icon: Building2,       label: 'Hostel Mgmt' },
-    { href: '/admin/library',   icon: Library,         label: 'Library Mgmt' },
+    { href: '/admin/hostel',    icon: Building2,       label: 'Hostel Management' },
+    { href: '/admin/library',   icon: Library,         label: 'Library Management' },
   ],
 };
 
@@ -75,12 +76,12 @@ export function DesktopSidebar({ role }: { role: Role }) {
   const navItems = NAV_MAP[role] || [];
 
   return (
-    <aside className={`relative flex flex-col bg-white border-r border-gray-100 min-h-screen transition-all duration-500 ease-in-out ${collapsed ? 'w-24' : 'w-72'}`}>
-      <div className="flex items-center px-8 h-20 border-b border-gray-50 overflow-hidden">
+    <aside className={`sticky top-0 h-screen flex flex-col bg-white border-r border-gray-100 transition-all duration-500 ease-in-out ${collapsed ? 'w-24' : 'w-72'}`}>
+      <div className="flex items-center px-8 h-20 border-b border-gray-50 overflow-hidden shrink-0">
         <Logo iconOnly={collapsed} />
       </div>
 
-      <nav className="flex-1 py-8 space-y-2 px-4">
+      <nav className="flex-1 py-8 space-y-2 px-4 overflow-y-auto no-scrollbar">
         {navItems.map(({ href, icon: Icon, label }) => {
           const active = pathname.startsWith(href);
           return (
@@ -107,7 +108,7 @@ export function DesktopSidebar({ role }: { role: Role }) {
         })}
       </nav>
 
-      <div className="p-4 border-t border-gray-50 space-y-1.5">
+      <div className="p-4 border-t border-gray-50 space-y-1.5 shrink-0">
         <Link
           href="/settings"
           className="flex items-center gap-3.5 px-4 py-3.5 rounded-2xl text-[14px] font-semibold text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all group"

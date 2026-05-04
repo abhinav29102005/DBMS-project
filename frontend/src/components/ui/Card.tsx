@@ -9,15 +9,20 @@ interface Props {
   children: ReactNode;
   className?: string;
   onClick?: () => void;
+  href?: string;
+  detailText?: string;
 }
 
-export function Card({ title, subtitle, icon: Icon, children, className, onClick }: Props) {
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+
+export function Card({ title, subtitle, icon: Icon, children, className, onClick, href, detailText }: Props) {
   return (
     <div
       onClick={onClick}
       className={cn(
-        "bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm transition-all duration-300",
-        onClick && "cursor-pointer hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 active:scale-[0.99]",
+        "bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm transition-all duration-300 group",
+        (onClick || href) && "cursor-pointer hover:border-brand-200 hover:shadow-xl hover:shadow-brand-500/5 active:scale-[0.99]",
         className
       )}
     >
@@ -35,6 +40,13 @@ export function Card({ title, subtitle, icon: Icon, children, className, onClick
         </div>
       )}
       <div className="text-gray-700">{children}</div>
+      {href && (
+        <div className="mt-4 pt-4 border-t border-gray-50 flex justify-end">
+          <Link href={href} className="text-[11px] font-bold text-brand-600 uppercase tracking-widest flex items-center gap-1.5 hover:text-brand-700 transition-colors">
+            {detailText || 'View Details'} <ArrowRight size={12} strokeWidth={3} />
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

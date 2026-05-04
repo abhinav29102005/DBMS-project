@@ -5,7 +5,7 @@ import { DesktopSidebar } from './DesktopSidebar';
 import { MobileNav } from './MobileNav';
 import { TopBar } from './TopBar';
 import { Role } from '@/types/api';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 
 import { useProfileStatus } from '@/hooks/useProfile';
 import { useRouter } from 'next/router';
@@ -16,15 +16,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 export function ShellLayout({ children, role }: { children: ReactNode; role: Role }) {
   const device = useDevice();
   const router = useRouter();
-  const { data: status, isLoading } = useProfileStatus();
+  const [mounted, setMounted] = useState(false);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  // const { data: status, isLoading } = useProfileStatus();
+
+  /*
   useEffect(() => {
     if (!isLoading && status && !status.isComplete && router.pathname !== '/profile/setup') {
       router.push('/profile/setup');
     }
   }, [status, isLoading, router]);
+  */
 
-  if (isLoading) return <Loading fullScreen />;
+  // if (isLoading) return <Loading fullScreen />;
+
+  if (!mounted) return null;
 
   const pageTransition = {
     initial: { opacity: 0, y: 10 },
@@ -35,7 +44,7 @@ export function ShellLayout({ children, role }: { children: ReactNode; role: Rol
 
   if (device === 'mobile') {
     return (
-      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
+      <div className="flex flex-col min-h-screen bg-gray-50 transition-colors">
         <TopBar role={role} />
         <main className="flex-1 overflow-y-auto pb-20 px-4 pt-4">
           <AnimatePresence mode="wait">
@@ -50,7 +59,7 @@ export function ShellLayout({ children, role }: { children: ReactNode; role: Rol
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 transition-colors">
+    <div className="flex min-h-screen bg-gray-50 transition-colors">
       <DesktopSidebar role={role} />
       <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
         <header className="mobile:hidden">

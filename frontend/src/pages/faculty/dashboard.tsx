@@ -40,7 +40,7 @@ export default function FacultyDashboard() {
               Welcome back, {user?.name || 'Professor'}! 🎓
             </h1>
             <p className="text-brand-100 max-w-md">
-              You have 2 lectures today and 45 student marks pending for submission.
+              {statsLoading ? <Skeleton className="h-4 w-64 bg-brand-400" /> : `You have ${stats?.activeCourses || 0} active courses and ${stats?.pendingMarks || 0} student marks pending for submission.`}
             </p>
           </div>
           <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -49,28 +49,28 @@ export default function FacultyDashboard() {
         </section>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card title="Total Students" subtitle="Under My Instruction" icon={Users}>
+          <Card title="Total Students" subtitle="Under My Instruction" icon={Users} href="/faculty/offerings">
             <div className="mt-2">
               {statsLoading ? <Skeleton className="h-9 w-16" /> : (
                 <span className="text-3xl font-bold text-gray-900">{stats?.totalStudents || 0}</span>
               )}
             </div>
           </Card>
-          <Card title="Active Courses" subtitle="This Semester" icon={BookOpen}>
+          <Card title="Active Courses" subtitle="This Semester" icon={BookOpen} href="/faculty/offerings">
             <div className="mt-2">
               {statsLoading ? <Skeleton className="h-9 w-16" /> : (
                 <span className="text-3xl font-bold text-gray-900">{stats?.activeCourses || 0}</span>
               )}
             </div>
           </Card>
-          <Card title="Avg. Attendance" subtitle="Class Performance" icon={Calendar}>
+          <Card title="Avg. Attendance" subtitle="Class Performance" icon={Calendar} href="/faculty/offerings">
             <div className="mt-2">
               {statsLoading ? <Skeleton className="h-9 w-16" /> : (
                 <span className="text-3xl font-bold text-gray-900">{stats?.avgAttendance || '0%'}</span>
               )}
             </div>
           </Card>
-          <Card title="Pending Marks" subtitle="Exam Controller" icon={FileText}>
+          <Card title="Pending Marks" subtitle="Exam Controller" icon={FileText} href="/faculty/offerings">
             <div className="mt-2">
               {statsLoading ? <Skeleton className="h-9 w-16" /> : (
                 <span className="text-3xl font-bold text-orange-600">{stats?.pendingMarks || 0}</span>

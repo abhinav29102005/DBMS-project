@@ -33,6 +33,17 @@ async function main() {
 
   const passwordHash = await bcrypt.hash('password123', 10);
 
+  if (process.argv.includes('--reset')) {
+    console.log('🗑️ Resetting database (truncating tables)...');
+    await client.query(`
+      TRUNCATE academic.students, academic.faculty, academic.courses, academic.course_offerings, academic.enrollments, academic.attendance CASCADE;
+      TRUNCATE hostel.allocations, hostel.beds, hostel.rooms, hostel.blocks, hostel.hostels CASCADE;
+      TRUNCATE library.issues, library.book_copies, library.books CASCADE;
+      TRUNCATE auth.users, auth.user_roles CASCADE;
+    `);
+    console.log('✅ Database reset complete.');
+  }
+
   // 1. Core / Auth Initialization
   await client.query(`
     INSERT INTO auth.roles (id, code, name, description, is_system) VALUES
@@ -382,6 +393,20 @@ async function main() {
         INSERT INTO library.issues (copy_id, member_user_id, issued_at, due_at, issued_by)
         VALUES ($1, $2, now(), now() + interval '14 days', $3)
       `, [copyRes.rows[0].id, studentData[i].uId, adminId]);
+    }
+  }
+
+  console.log('Generating attendance records...');
+  for (const stu of studentData) {
+    // Generate 10 attendance records for each student
+    for (let j = 0; j < 10; j++) {
+      const date = new Date();
+      date.setDate(date.getDate() - j);
+      await client.query(`
+        INSERT INTO academic.attendance (student_id, course_offering_id, date, status, recorded_by)
+        VALUES ($1, $2, $3, $4, $5)
+        ON CONFLICT DO NOTHING
+      `, [stu.stuId, offeringId, date, faker.helpers.arrayElement(['present', 'present', 'present', 'absent', 'late']), adminId]);
     }
   }
 

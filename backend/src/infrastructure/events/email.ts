@@ -1,4 +1,5 @@
 
+import { WorkerMailer } from 'worker-mailer';
 
 export interface EmailOptions {
   to: string;
@@ -22,27 +23,30 @@ export class ConsoleEmailService implements EmailService {
 }
 
 export class BrevoEmailService implements EmailService {
-  constructor(private apiKey: string) {}
+  constructor(private config: { user: string; pass: string }) {}
 
   async send(options: EmailOptions): Promise<void> {
-    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: {
-        'api-key': this.apiKey,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        sender: { name: 'UIMS System', email: 'no-reply@uims.edu' },
-        to: [{ email: options.to }],
-        subject: options.subject,
-        textContent: options.text,
-        htmlContent: options.html || options.text,
-      }),
-    });
+    try {
+      const mailer = await WorkerMailer.connect({
+        host: 'smtp-relay.brevo.com',
+        port: 587,
+        authType: 'plain',
+        credentials: {
+          username: this.config.user,
+          password: this.config.pass,
+        },
+      });
 
-    if (!response.ok) {
-      const err = await response.text();
-      throw new Error(`Brevo send failed: ${err}`);
+      await mailer.send({
+        from: { name: 'Faculty Mentorship Portal', email: 'abhimamapapa29@gmail.com' },
+        to: { email: options.to },
+        subject: options.subject,
+        html: options.html || options.text.replace(/\n/g, '<br/>'),
+        text: options.text,
+      });
+    } catch (error: any) {
+      console.error('SMTP Error:', error.message);
+      throw error;
     }
   }
 }

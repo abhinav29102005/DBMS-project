@@ -1,14 +1,6 @@
 import { ShellLayout } from '@/components/layout/ShellLayout';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { useStudentEnrollments } from '@/hooks/useStudent';
-import { Loading } from '@/components/feedback/Loading';
-import { BookOpen, User, MapPin, Clock, Search } from 'lucide-react';
-import Head from 'next/head';
-import { Input } from '@/components/ui/Input';
-
-import { ErrorState } from '@/components/feedback/ErrorState';
-
 import { useStudentEnrollments, useAvailableOfferings, useEnrollCourse } from '@/hooks/useStudent';
 import { Loading } from '@/components/feedback/Loading';
 import { BookOpen, User, MapPin, Clock, Search, Plus, CheckCircle2 } from 'lucide-react';
@@ -79,17 +71,17 @@ export default function CoursesPage() {
                   </div>
                   <div className="flex-1">
                     <div className="flex justify-between items-start mb-2">
-                      <span className="text-[11px] font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-2 py-1 rounded-md">{enrollment.courseCode}</span>
+                      <span className="text-[11px] font-bold text-brand-600 uppercase tracking-widest bg-brand-50 px-2 py-1 rounded-md">{enrollment.course_code}</span>
                       <span className="text-xs font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded-md">{enrollment.credits} Credits</span>
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-5 group-hover:text-brand-700 transition-colors leading-tight">{enrollment.title}</h3>
-
+ 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-6">
                       <div className="flex items-center gap-2.5 text-sm text-gray-600 font-semibold">
                         <div className="p-1.5 rounded-lg bg-gray-50 group-hover:bg-brand-50 transition-colors">
                           <User size={14} className="text-brand-500" />
                         </div>
-                        {enrollment.facultyName || 'TBA'}
+                        {enrollment.faculty_name || 'TBA'}
                       </div>
                       <div className="flex items-center gap-2.5 text-sm text-gray-600 font-semibold">
                         <div className="p-1.5 rounded-lg bg-gray-50 group-hover:bg-brand-50 transition-colors">
@@ -101,7 +93,7 @@ export default function CoursesPage() {
                         <div className="p-1.5 rounded-lg bg-gray-50 group-hover:bg-brand-50 transition-colors">
                           <Clock size={14} className="text-brand-500" />
                         </div>
-                        Section: {enrollment.sectionCode}
+                        Section: {enrollment.section_code}
                       </div>
                     </div>
                   </div>
@@ -141,19 +133,19 @@ export default function CoursesPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[10px] font-bold text-brand-600 uppercase tracking-widest">{offering.courseCode}</span>
+                        <span className="text-[10px] font-bold text-brand-600 uppercase tracking-widest">{offering.course_code}</span>
                         <span className="text-[10px] font-bold text-gray-400">•</span>
                         <span className="text-[10px] font-bold text-gray-500">{offering.credits} Credits</span>
                       </div>
                       <h4 className="font-bold text-gray-900 group-hover:text-brand-700 transition-colors">{offering.title}</h4>
-                      <p className="text-[11px] text-gray-500 font-medium mt-0.5">Prof. {offering.facultyName || 'TBA'}</p>
+                      <p className="text-[11px] text-gray-500 font-medium mt-0.5">Prof. {offering.faculty_name || 'TBA'}</p>
                     </div>
                   </div>
                   <Button
                     size="sm"
                     className="rounded-xl px-4"
                     onClick={() => handleEnroll(offering.id)}
-                    isLoading={enrollMutation.isPending && enrollMutation.variables === offering.id}
+                    loading={enrollMutation.isPending && enrollMutation.variables === offering.id}
                   >
                     Enroll
                   </Button>
