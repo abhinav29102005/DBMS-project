@@ -22,7 +22,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function SettingsPage() {
-  const { user, role } = useAuthStore((s: AuthState) => ({ user: s.user, role: s.role }));
+  const { user, role } = useAuthStore((s: AuthState) => ({ user: s.user, role: s.user?.role }));
   const [loading, setLoading] = useState(false);
   const [theme, setTheme] = useState('system');
   const [showPassword, setShowPassword] = useState(false);
