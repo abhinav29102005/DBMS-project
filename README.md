@@ -114,4 +114,4 @@ npm run dev        # Starts local Wrangler worker
 
 
 ---
-<p align="center">Built for Thapar University DBMS Project &copy; 2024</p>
+<p align="center">Built for Thapar University DBMS Project &copy; 2026</p>
