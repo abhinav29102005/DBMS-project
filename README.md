@@ -6,7 +6,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-A production-grade, database-driven **University Integrated Management Portal (UIMP)**. Built with a modular monolith architecture, this system centralizes fragmented university operations into a robust, high-performance platform.
+A production-grade, database-driven **University Integrated Management System (UIMS)**. Built with a modular monolith architecture, this system centralizes fragmented university operations into a robust, high-performance platform.
 
 ---
 
