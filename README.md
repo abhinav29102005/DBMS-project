@@ -1,4 +1,4 @@
-# 🏛️ Thapar University Integrated Management Portal (UIMP)
+# 🏛️  University Integrated Management System (UIMS)
 
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?style=flat-square&logo=cloudflare)](https://workers.cloudflare.com/)
